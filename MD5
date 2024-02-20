@@ -1,0 +1,7 @@
+91dcb5a3a425afe4c2560314dff60604 *DESCRIPTION
+28e64e4d0267acc90b5063bc94154657 *NAMESPACE
+33cfd846602a6bf21609ca3b07b3471c *R/cmahalanobis.R
+5e2f432c9b3737410d1d40b1616c6656 *man/cmahalanobis.Rd
+537971a96c3f3dc731f84a3ad22f7304 *tests/testthat.R
+9e601d1b7b9274f8932b1620e1939d92 *tests/testthat/cmahalanobis.R
+6a7f8ab0af5c2f1125d39930e7d153fe *tests/testthat/test-cmahalanobis.R
