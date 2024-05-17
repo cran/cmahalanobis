@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>cmahalanobis: An R Package for Computing the Mahalanobis Distance Between Factors</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">cmahalanobis: An R Package for Computing
+the Mahalanobis Distance Between Factors</h1>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Statistical matching or statistical fusion of data is a technique
+widely used in various fields, such as impact evaluation, public policy
+analysis, market research, biostatistics and others. This technique
+consists of integrating two data sources that refer to the same target
+population and that share some variables, but not all. The aim is to
+obtain a synthetic dataset that contains all the variables of interest
+from both sources, and that preserves the statistical properties of the
+original data.</p>
+<p>One of the key steps in statistical matching or statistical fusion of
+data is to ensure the similarity or dissimilarity between the units of
+two data sources, based on common variables. A common measure of
+dissimilarity is the Mahalanobis distance, which is a measure of
+dissimilarity between two vectors of multivariate random variables,
+based on the covariance matrix. This distance takes into account the
+correlation between variables, and gives more weight to variables that
+have more variance.</p>
+<p>However, calculating the Mahalanobis distance requires complex
+mathematical operations, such as inverting the covariance matrix, which
+can be difficult to implement and computationally expensive, especially
+when working with large amounts of data or many variables. Furthermore,
+the calculation of the Mahalanobis distance can be affected by problems
+such as missing data, nonnormality of variables, or multicollinearity.
+These problems can lead to inaccurate or unreliable results, and
+appropriate methods are needed to handle them.</p>
+<p>We present the cmahalanobis package, an R package that provides a
+function to compute the Mahalanobis distance between every pair of
+species in a list of data frames. Each data frame contains the
+observations of a species with some variables. The cmahalanobis package
+is based on the formula for Mahalanobis distance and exploits the
+Mahalanobis functions of “stats” R package for matrix computation. The
+cmahalanobis package offers several options for handling missing data,
+standardizing variables, and selecting relevant variables. The
+cmahalanobis package differs from other similar packages in terms of its
+simplicity, flexibility, and speed.</p>
+<p>We provide an effective and practical tool for calculating the
+Mahalanobis distance, and we show some applications in real and
+simulated cases. We illustrate the results with graphs and tables, and
+we comment on the implications and limitations of our approach. We
+conclude that the cmahalanobis package is a useful and valuable resource
+for statistical matching or statistical fusion of data.</p>
+</div>
+<div id="advantages-of-the-cmahalanobis-package" class="section level2">
+<h2>Advantages of the cmahalanobis package</h2>
+<p>Main advantages of package are easyness of use, well documentation,
+automatic handling of NA or NaN, automatic plot and the possibility to
+calculate Mahalanobis distance with more distances using less time.</p>
+<p>Other properties:</p>
+<ul>
+<li><p>Automation: The “cmahalanobis” function automates the calculation
+of mean and covariance matrix for each data group, simplifying the
+process;</p></li>
+<li><p>Convenience: You don’t need to manually compute the center or
+covariance matrix for each data group, making the function more
+convenient for situations where you have multiple data groups to
+compare;</p></li>
+<li><p>Ease of use: “cmahalanobis” is easier to use when you want to
+calculate Mahalanobis distances across multiple data groups without
+having to handle the calculation details.</p></li>
+<li><p>Automatic plot: plots are created just users apply the function
+to a list of dataframes, if they don’t want, they have to specify “plot
+= FALSE”</p></li>
+<li><p>Automatic p-values: p-values are printed just users write the
+name of the vector where it is been applied the function to a list of
+dataframes, if they write “p.value = TRUE”</p></li>
+</ul>
+<p>“cmahalanobis” function allows the calculation in presence of NA
+and/or NaN. Replacing them with a mean of the variable where the value
+is present.</p>
+<p>First, we have to download the “cmahalanobis” package from the CRAN
+with the following code:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(”cmahalanobis”)</span></code></pre></div>
+<p>Then:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(cmahalanobis)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>num_observations <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>num_variables <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>group1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">a =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="cn">NA</span>,<span class="dv">4</span>), <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="cn">NA</span>))</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>group2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">a =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">5</span>,<span class="cn">NA</span>,<span class="dv">3</span>), <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">5</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>groups <span class="ot">&lt;-</span> <span class="fu">list</span>(group1, group2)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>distances <span class="ot">&lt;-</span> <span class="fu">cmahalanobis</span>(groups, <span class="at">plot =</span> <span class="cn">TRUE</span>, <span class="at">p.value =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="40%" /></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>distances</span></code></pre></div>
+<pre><code>#&gt; $distances
+#&gt;          [,1]     [,2]
+#&gt; [1,] 1.500000 2.580882
+#&gt; [2,] 1.880282 1.500000
+#&gt; 
+#&gt; $p_values
+#&gt;           [,1]      [,2]
+#&gt; [1,]        NA 0.2751494
+#&gt; [2,] 0.3905728        NA</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>group1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">a =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="cn">NaN</span>,<span class="dv">4</span>), <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="cn">NaN</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>group2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">a =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">5</span>,<span class="cn">NaN</span>,<span class="dv">3</span>), <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">5</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>groups <span class="ot">&lt;-</span> <span class="fu">list</span>(group1, group2)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>distances <span class="ot">&lt;-</span> <span class="fu">cmahalanobis</span>(groups, <span class="at">plot =</span> <span class="cn">FALSE</span>, <span class="at">p.value =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>distances</span></code></pre></div>
+<pre><code>#&gt; $distances
+#&gt;          [,1]     [,2]
+#&gt; [1,] 1.500000 2.580882
+#&gt; [2,] 1.880282 1.500000
+#&gt; 
+#&gt; $p_values
+#&gt;           [,1]      [,2]
+#&gt; [1,]        NA 0.2751494
+#&gt; [2,] 0.3905728        NA</code></pre>
+</div>
+<div id="advantages-on-particular-dataset" class="section level2">
+<h2>Advantages on particular dataset</h2>
+<p>The “cmahalanobis” package is particularly suitable for datasets that
+contain multiple groups of multivariate data for which you want to
+calculate the Mahalanobis distance. Here are some scenarios where
+“cmahalanobis” proves to be very useful:</p>
+<ul>
+<li><strong>Biodiversity analysis:</strong> When you have measurements
+of different species and want to compare their genetic or ecological
+distances. An example is “iris” dataset.</li>
+<li><strong>Quality control:</strong> In industrial contexts, to compare
+groups of products or processes based on multiple quality metrics. An
+example is “mtcars” dataset.</li>
+<li><strong>Medical research:</strong> To compare groups of patients
+based on multiple health indicators or treatment responses. An example
+is “Human Connectome project” that aims to construct a map of the neural
+connections of the human brain. This type of dataset is crucial for
+studying the neurobiological basis of cognition and gaining a better
+understanding of neurological disorders.</li>
+<li><strong>Market analysis:</strong> When analysing customer or product
+segments based on multiple demographic or behavioral characteristics. An
+example is “Real Estate Data Marketplace” that analyse the trend of real
+estate market when related to AI, Internet of Things (IoT), Big Data,
+Digital Object Identifiers (DOI) and Blockchain. This type of dataset
+includes real transacted data and can be used to study trends of real
+estate market;</li>
+<li><strong>Pattern recognition:</strong> In studies that require
+comparing groups of data to identify patterns or anomalies. An example
+is “MNIST database” that contains images of handwritten digits. It is
+widely used to train machine learning system for recognition of visual
+pattern and classification of images.</li>
+</ul>
+<p>“cmahalanobis” is useful when you need a function that can
+automatically handles the calculation of means and covariance matrices
+for each group, simplifying the process of calculating distances between
+multiple groups. This makes it an excellent tool for analyses involving
+multi-group comparisons in a multivariate context.</p>
+</div>
+<div id="application" class="section level2">
+<h2>Application</h2>
+<div id="application-of-cmahalanobis-to-the-iris-dataset" class="section level3">
+<h3>Application of cmahalanobis to the iris dataset</h3>
+<p>Once the download is successful, we can apply our function to the
+iris dataset which is a built-in dataset in R. The iris dataset contains
+150 observations of three species of iris flowers (setosa, versicolor,
+and virginica), with four variables: sepal length, sepal width, petal
+length, and petal width. Before we can use our function, we have to
+create a list of data frames for each species, with the following
+code:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>iris_list <span class="ot">&lt;-</span> <span class="fu">split</span>(iris, iris<span class="sc">$</span>Species)</span></code></pre></div>
+<p>This code splits the iris data frame into three data frames, one for
+each species, and stores them in a list called the “iris_list”. We can
+print the “iris_list” to visualize its structure and content:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Print iris_list</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>iris_list</span></code></pre></div>
+<pre><code>#&gt; $setosa
+#&gt;    Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+#&gt; 1           5.1         3.5          1.4         0.2  setosa
+#&gt; 2           4.9         3.0          1.4         0.2  setosa
+#&gt; 3           4.7         3.2          1.3         0.2  setosa
+#&gt; 4           4.6         3.1          1.5         0.2  setosa
+#&gt; 5           5.0         3.6          1.4         0.2  setosa
+#&gt; 6           5.4         3.9          1.7         0.4  setosa
+#&gt; 7           4.6         3.4          1.4         0.3  setosa
+#&gt; 8           5.0         3.4          1.5         0.2  setosa
+#&gt; 9           4.4         2.9          1.4         0.2  setosa
+#&gt; 10          4.9         3.1          1.5         0.1  setosa
+#&gt; 11          5.4         3.7          1.5         0.2  setosa
+#&gt; 12          4.8         3.4          1.6         0.2  setosa
+#&gt; 13          4.8         3.0          1.4         0.1  setosa
+#&gt; 14          4.3         3.0          1.1         0.1  setosa
+#&gt; 15          5.8         4.0          1.2         0.2  setosa
+#&gt; 16          5.7         4.4          1.5         0.4  setosa
+#&gt; 17          5.4         3.9          1.3         0.4  setosa
+#&gt; 18          5.1         3.5          1.4         0.3  setosa
+#&gt; 19          5.7         3.8          1.7         0.3  setosa
+#&gt; 20          5.1         3.8          1.5         0.3  setosa
+#&gt; 21          5.4         3.4          1.7         0.2  setosa
+#&gt; 22          5.1         3.7          1.5         0.4  setosa
+#&gt; 23          4.6         3.6          1.0         0.2  setosa
+#&gt; 24          5.1         3.3          1.7         0.5  setosa
+#&gt; 25          4.8         3.4          1.9         0.2  setosa
+#&gt; 26          5.0         3.0          1.6         0.2  setosa
+#&gt; 27          5.0         3.4          1.6         0.4  setosa
+#&gt; 28          5.2         3.5          1.5         0.2  setosa
+#&gt; 29          5.2         3.4          1.4         0.2  setosa
+#&gt; 30          4.7         3.2          1.6         0.2  setosa
+#&gt; 31          4.8         3.1          1.6         0.2  setosa
+#&gt; 32          5.4         3.4          1.5         0.4  setosa
+#&gt; 33          5.2         4.1          1.5         0.1  setosa
+#&gt; 34          5.5         4.2          1.4         0.2  setosa
+#&gt; 35          4.9         3.1          1.5         0.2  setosa
+#&gt; 36          5.0         3.2          1.2         0.2  setosa
+#&gt; 37          5.5         3.5          1.3         0.2  setosa
+#&gt; 38          4.9         3.6          1.4         0.1  setosa
+#&gt; 39          4.4         3.0          1.3         0.2  setosa
+#&gt; 40          5.1         3.4          1.5         0.2  setosa
+#&gt; 41          5.0         3.5          1.3         0.3  setosa
+#&gt; 42          4.5         2.3          1.3         0.3  setosa
+#&gt; 43          4.4         3.2          1.3         0.2  setosa
+#&gt; 44          5.0         3.5          1.6         0.6  setosa
+#&gt; 45          5.1         3.8          1.9         0.4  setosa
+#&gt; 46          4.8         3.0          1.4         0.3  setosa
+#&gt; 47          5.1         3.8          1.6         0.2  setosa
+#&gt; 48          4.6         3.2          1.4         0.2  setosa
+#&gt; 49          5.3         3.7          1.5         0.2  setosa
+#&gt; 50          5.0         3.3          1.4         0.2  setosa
+#&gt; 
+#&gt; $versicolor
+#&gt;     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species
+#&gt; 51           7.0         3.2          4.7         1.4 versicolor
+#&gt; 52           6.4         3.2          4.5         1.5 versicolor
+#&gt; 53           6.9         3.1          4.9         1.5 versicolor
+#&gt; 54           5.5         2.3          4.0         1.3 versicolor
+#&gt; 55           6.5         2.8          4.6         1.5 versicolor
+#&gt; 56           5.7         2.8          4.5         1.3 versicolor
+#&gt; 57           6.3         3.3          4.7         1.6 versicolor
+#&gt; 58           4.9         2.4          3.3         1.0 versicolor
+#&gt; 59           6.6         2.9          4.6         1.3 versicolor
+#&gt; 60           5.2         2.7          3.9         1.4 versicolor
+#&gt; 61           5.0         2.0          3.5         1.0 versicolor
+#&gt; 62           5.9         3.0          4.2         1.5 versicolor
+#&gt; 63           6.0         2.2          4.0         1.0 versicolor
+#&gt; 64           6.1         2.9          4.7         1.4 versicolor
+#&gt; 65           5.6         2.9          3.6         1.3 versicolor
+#&gt; 66           6.7         3.1          4.4         1.4 versicolor
+#&gt; 67           5.6         3.0          4.5         1.5 versicolor
+#&gt; 68           5.8         2.7          4.1         1.0 versicolor
+#&gt; 69           6.2         2.2          4.5         1.5 versicolor
+#&gt; 70           5.6         2.5          3.9         1.1 versicolor
+#&gt; 71           5.9         3.2          4.8         1.8 versicolor
+#&gt; 72           6.1         2.8          4.0         1.3 versicolor
+#&gt; 73           6.3         2.5          4.9         1.5 versicolor
+#&gt; 74           6.1         2.8          4.7         1.2 versicolor
+#&gt; 75           6.4         2.9          4.3         1.3 versicolor
+#&gt; 76           6.6         3.0          4.4         1.4 versicolor
+#&gt; 77           6.8         2.8          4.8         1.4 versicolor
+#&gt; 78           6.7         3.0          5.0         1.7 versicolor
+#&gt; 79           6.0         2.9          4.5         1.5 versicolor
+#&gt; 80           5.7         2.6          3.5         1.0 versicolor
+#&gt; 81           5.5         2.4          3.8         1.1 versicolor
+#&gt; 82           5.5         2.4          3.7         1.0 versicolor
+#&gt; 83           5.8         2.7          3.9         1.2 versicolor
+#&gt; 84           6.0         2.7          5.1         1.6 versicolor
+#&gt; 85           5.4         3.0          4.5         1.5 versicolor
+#&gt; 86           6.0         3.4          4.5         1.6 versicolor
+#&gt; 87           6.7         3.1          4.7         1.5 versicolor
+#&gt; 88           6.3         2.3          4.4         1.3 versicolor
+#&gt; 89           5.6         3.0          4.1         1.3 versicolor
+#&gt; 90           5.5         2.5          4.0         1.3 versicolor
+#&gt; 91           5.5         2.6          4.4         1.2 versicolor
+#&gt; 92           6.1         3.0          4.6         1.4 versicolor
+#&gt; 93           5.8         2.6          4.0         1.2 versicolor
+#&gt; 94           5.0         2.3          3.3         1.0 versicolor
+#&gt; 95           5.6         2.7          4.2         1.3 versicolor
+#&gt; 96           5.7         3.0          4.2         1.2 versicolor
+#&gt; 97           5.7         2.9          4.2         1.3 versicolor
+#&gt; 98           6.2         2.9          4.3         1.3 versicolor
+#&gt; 99           5.1         2.5          3.0         1.1 versicolor
+#&gt; 100          5.7         2.8          4.1         1.3 versicolor
+#&gt; 
+#&gt; $virginica
+#&gt;     Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
+#&gt; 101          6.3         3.3          6.0         2.5 virginica
+#&gt; 102          5.8         2.7          5.1         1.9 virginica
+#&gt; 103          7.1         3.0          5.9         2.1 virginica
+#&gt; 104          6.3         2.9          5.6         1.8 virginica
+#&gt; 105          6.5         3.0          5.8         2.2 virginica
+#&gt; 106          7.6         3.0          6.6         2.1 virginica
+#&gt; 107          4.9         2.5          4.5         1.7 virginica
+#&gt; 108          7.3         2.9          6.3         1.8 virginica
+#&gt; 109          6.7         2.5          5.8         1.8 virginica
+#&gt; 110          7.2         3.6          6.1         2.5 virginica
+#&gt; 111          6.5         3.2          5.1         2.0 virginica
+#&gt; 112          6.4         2.7          5.3         1.9 virginica
+#&gt; 113          6.8         3.0          5.5         2.1 virginica
+#&gt; 114          5.7         2.5          5.0         2.0 virginica
+#&gt; 115          5.8         2.8          5.1         2.4 virginica
+#&gt; 116          6.4         3.2          5.3         2.3 virginica
+#&gt; 117          6.5         3.0          5.5         1.8 virginica
+#&gt; 118          7.7         3.8          6.7         2.2 virginica
+#&gt; 119          7.7         2.6          6.9         2.3 virginica
+#&gt; 120          6.0         2.2          5.0         1.5 virginica
+#&gt; 121          6.9         3.2          5.7         2.3 virginica
+#&gt; 122          5.6         2.8          4.9         2.0 virginica
+#&gt; 123          7.7         2.8          6.7         2.0 virginica
+#&gt; 124          6.3         2.7          4.9         1.8 virginica
+#&gt; 125          6.7         3.3          5.7         2.1 virginica
+#&gt; 126          7.2         3.2          6.0         1.8 virginica
+#&gt; 127          6.2         2.8          4.8         1.8 virginica
+#&gt; 128          6.1         3.0          4.9         1.8 virginica
+#&gt; 129          6.4         2.8          5.6         2.1 virginica
+#&gt; 130          7.2         3.0          5.8         1.6 virginica
+#&gt; 131          7.4         2.8          6.1         1.9 virginica
+#&gt; 132          7.9         3.8          6.4         2.0 virginica
+#&gt; 133          6.4         2.8          5.6         2.2 virginica
+#&gt; 134          6.3         2.8          5.1         1.5 virginica
+#&gt; 135          6.1         2.6          5.6         1.4 virginica
+#&gt; 136          7.7         3.0          6.1         2.3 virginica
+#&gt; 137          6.3         3.4          5.6         2.4 virginica
+#&gt; 138          6.4         3.1          5.5         1.8 virginica
+#&gt; 139          6.0         3.0          4.8         1.8 virginica
+#&gt; 140          6.9         3.1          5.4         2.1 virginica
+#&gt; 141          6.7         3.1          5.6         2.4 virginica
+#&gt; 142          6.9         3.1          5.1         2.3 virginica
+#&gt; 143          5.8         2.7          5.1         1.9 virginica
+#&gt; 144          6.8         3.2          5.9         2.3 virginica
+#&gt; 145          6.7         3.3          5.7         2.5 virginica
+#&gt; 146          6.7         3.0          5.2         2.3 virginica
+#&gt; 147          6.3         2.5          5.0         1.9 virginica
+#&gt; 148          6.5         3.0          5.2         2.0 virginica
+#&gt; 149          6.2         3.4          5.4         2.3 virginica
+#&gt; 150          5.9         3.0          5.1         1.8 virginica</code></pre>
+<p>Now that we have created our list of dataframes, we can apply the
+function “cmahalanobis()”.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">cmahalanobis</span>(iris_list, <span class="at">p.value =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="40%" /></p>
+<p>Then, we use:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>res</span></code></pre></div>
+<pre><code>#&gt; $distances
+#&gt;          [,1]      [,2]      [,3]
+#&gt; [1,]   3.9200 335.19989 727.42056
+#&gt; [2,] 107.1736   3.92000  26.71618
+#&gt; [3,] 171.7689  16.88654   3.92000
+#&gt; 
+#&gt; $p_values
+#&gt;              [,1]         [,2]          [,3]
+#&gt; [1,]           NA 2.748687e-71 4.023276e-156
+#&gt; [2,] 2.915001e-22           NA  2.268568e-05
+#&gt; [3,] 4.363119e-36 2.033555e-03            NA</code></pre>
+<p>This code shows the Mahalanobis distance between each iris species
+present in the iris dataframe: setosa, versicolor and virginica. The
+main diagonal of the matrix shows the Mahalanobis distance between each
+species and itself, which is always 3.9. The other elements of matrix
+revealed the Mahalanobis distance between the different species. For
+example: the Mahalanobis distance between setosa and versicolor was
+335.19989, instead between versicolor and virginica was 16.88654. This
+means that the versicolor and virginica species are more similar then
+the setosa species, according to the variables measured in the iris
+dataframe. The values in the rows, from 1 to 3, indicate the distance
+between the mean of that row’s group and the mean of each group in the
+columns. For example, in [1,2], it represents the distance between the
+mean of group 1 and all points in group 2; in [3,2], it represents the
+mean of group 3 and all points in group 2, and so on.</p>
+<p>Figure 1 shows the same results as those for the matrix, but
+graphically.</p>
+<p>The p-value matrix that we have obtained by the application of our
+package to iris “dataset” supplies information statistically significant
+about Mahalanobis distance between groups of data. We have calculated
+p-values using chi-squared distribution. Here what p-values show:</p>
+<ul>
+<li><p>P-value under 0.05: A very small p-value (such as those we see in
+your matrix) indicates that the Mahalanobis distance between groups is
+statistically significant. In other words, the compared groups are
+significantly different from each other in terms of their measured
+characteristics.</p></li>
+<li><p>NA (Not Applicable): NA values on the diagonal indicate that a
+p-value has not been calculated for comparing a group with itself, as
+the p-value is meaningless when calculating the difference between a
+group and itself.</p></li>
+</ul>
+<p>In summary, our p-value matrix suggests that all three groups in the
+‘iris’ dataset are significantly different from each other based on the
+provided measurements. This is consistent with what one would expect
+from the ‘iris’ dataset, which contains measurements of three different
+species of iris flowers (setosa, versicolor, and virginica), each with
+distinctive characteristics.</p>
+</div>
+<div id="application-of-cmahalanobis-to-the-mtcars-dataset" class="section level3">
+<h3>Application of cmahalanobis to the mtcars dataset</h3>
+<p>Now I will apply the function “cmahalanobis” to the mtcars dataset
+using the variable “am”. First, we have to split the data into 0, that
+is, automatic transmission, and 1, that is, manual transmission,
+thus:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Create a dataframe where only ”am = 0” is present</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>auto <span class="ot">&lt;-</span> <span class="fu">subset</span>(mtcars, am <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co"># Remove the variable ”am = 0”</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>auto <span class="ot">&lt;-</span> auto [, <span class="sc">-</span><span class="dv">9</span>]</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co"># Create a dataframe where only ”am = 1” is present</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>manual <span class="ot">&lt;-</span> <span class="fu">subset</span>(mtcars, am <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co"># Remove the variable ”am = 1”</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>manual <span class="ot">&lt;-</span> manual[, <span class="sc">-</span><span class="dv">9</span>]</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co"># Create a list with the two groups of cars</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>groups <span class="ot">&lt;-</span> <span class="fu">list</span>(auto, manual)</span></code></pre></div>
+<p>Inside the vector groups:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Print groups</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>groups</span></code></pre></div>
+<pre><code>#&gt; [[1]]
+#&gt;                      mpg cyl  disp  hp drat    wt  qsec vs gear carb
+#&gt; Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1    3    1
+#&gt; Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0    3    2
+#&gt; Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1    3    1
+#&gt; Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0    3    4
+#&gt; Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1    4    2
+#&gt; Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1    4    2
+#&gt; Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1    4    4
+#&gt; Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1    4    4
+#&gt; Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0    3    3
+#&gt; Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0    3    3
+#&gt; Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0    3    3
+#&gt; Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0    3    4
+#&gt; Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0    3    4
+#&gt; Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0    3    4
+#&gt; Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1    3    1
+#&gt; Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0    3    2
+#&gt; AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0    3    2
+#&gt; Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0    3    4
+#&gt; Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0    3    2
+#&gt; 
+#&gt; [[2]]
+#&gt;                 mpg cyl  disp  hp drat    wt  qsec vs gear carb
+#&gt; Mazda RX4      21.0   6 160.0 110 3.90 2.620 16.46  0    4    4
+#&gt; Mazda RX4 Wag  21.0   6 160.0 110 3.90 2.875 17.02  0    4    4
+#&gt; Datsun 710     22.8   4 108.0  93 3.85 2.320 18.61  1    4    1
+#&gt; Fiat 128       32.4   4  78.7  66 4.08 2.200 19.47  1    4    1
+#&gt; Honda Civic    30.4   4  75.7  52 4.93 1.615 18.52  1    4    2
+#&gt; Toyota Corolla 33.9   4  71.1  65 4.22 1.835 19.90  1    4    1
+#&gt; Fiat X1-9      27.3   4  79.0  66 4.08 1.935 18.90  1    4    1
+#&gt; Porsche 914-2  26.0   4 120.3  91 4.43 2.140 16.70  0    5    2
+#&gt; Lotus Europa   30.4   4  95.1 113 3.77 1.513 16.90  1    5    2
+#&gt; Ford Pantera L 15.8   8 351.0 264 4.22 3.170 14.50  0    5    4
+#&gt; Ferrari Dino   19.7   6 145.0 175 3.62 2.770 15.50  0    5    6
+#&gt; Maserati Bora  15.0   8 301.0 335 3.54 3.570 14.60  0    5    8
+#&gt; Volvo 142E     21.4   4 121.0 109 4.11 2.780 18.60  1    4    2</code></pre>
+<p>Finally we apply:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">cmahalanobis</span>(groups, <span class="at">plot =</span> <span class="cn">TRUE</span>, <span class="at">p.value =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="40%" /></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>res</span></code></pre></div>
+<pre><code>#&gt; $distances
+#&gt;            [,1]       [,2]
+#&gt; [1,]   9.473684 156.116255
+#&gt; [2,] 735.591909   9.230769
+#&gt; 
+#&gt; $p_values
+#&gt;               [,1]         [,2]
+#&gt; [1,]            NA 2.050145e-28
+#&gt; [2,] 1.429549e-151           NA</code></pre>
+<p>Figure 2 shows that the distance between the mean of factor 1 and all
+data of itself is 9.47, the same distance is 9.23 for factor 2. We
+observe that the distance between cars with “am = 0” and cars with “am =
+1” is 156.11, under the perspective of “am = 0”. At “am = 1”, the
+distance between the mean of this variable and all data of “am = 0” is
+735.591909, which is high. Therefore, cars with “am = 1” and with “am =
+0” are truly different considering other variables: that is, “mpg” “cyl”
+“disp” “hp” “drat” “wt” “qsec” “vs” “gear” and “carb”. The p-value
+matrix, which values are significantly below 0.05, confirms it.</p>
+</div>
+<div id="simulation-study" class="section level3">
+<h3>Simulation study</h3>
+<p>Here is an example of a simulation study using the “cmahalanobis”
+package in R. In this study, we generated three simulated data groups,
+each with a set of normally distributed variables, and then calculated
+the Mahalanobis distance between these groups using the “cmahalanobis”
+function.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Load cmahalanobis package</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">library</span>(cmahalanobis)</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co"># Define the number of observations and variables for each groups</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>num_observations <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>num_variables <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="co"># We generate three groups of simulated data with normal distribution</span></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) <span class="co"># For the reproducibility of results</span></span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a>group1 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">matrix</span>(<span class="fu">rnorm</span>(num_observations <span class="sc">*</span> num_variables), </span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a>                               <span class="at">nrow =</span> num_observations))</span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a>group2 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">matrix</span>(<span class="fu">rnorm</span>(num_observations <span class="sc">*</span> num_variables), </span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a>                               <span class="at">nrow =</span> num_observations))</span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a>group3 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">matrix</span>(<span class="fu">rnorm</span>(num_observations <span class="sc">*</span> num_variables), </span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a>                               <span class="at">nrow =</span> num_observations))</span>
+<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a><span class="co"># Create a list of three groups of data</span></span>
+<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a>groups <span class="ot">&lt;-</span> <span class="fu">list</span>(group1, group2, group3)</span>
+<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a><span class="co"># Calculate Mahalanobis distance with cmahalanobis function</span></span>
+<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a>distances <span class="ot">&lt;-</span> <span class="fu">cmahalanobis</span>(groups, <span class="at">p.value =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="40%" /></p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Visualize the distance matrix</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>distances</span></code></pre></div>
+<pre><code>#&gt; $distances
+#&gt;          [,1]     [,2]     [,3]
+#&gt; [1,] 4.950000 5.639257 5.567479
+#&gt; [2,] 4.722923 4.950000 5.029954
+#&gt; [3,] 5.329901 5.783087 4.950000
+#&gt; 
+#&gt; $p_values
+#&gt;           [,1]      [,2]      [,3]
+#&gt; [1,]        NA 0.3429174 0.3506032
+#&gt; [2,] 0.4506217        NA 0.4122355
+#&gt; [3,] 0.3769584 0.3279009        NA</code></pre>
+<p>In this script:</p>
+<ul>
+<li>We used “rnorm” to generate random data normally distributed for
+each group;</li>
+<li>We created a matrix for each group with “num_observations” rows and
+“num_variables” columns;</li>
+<li>We converted each matrix into a dataframe and we stored them in a
+list;</li>
+<li>We used “cmahalanobis” function to calculate Mahalanobis distance
+between groups;</li>
+<li>We printed the resulting distance matrix, the plot and the p-value
+matrix.</li>
+</ul>
+<p>The distances matrix shows Mahalanobis distance between the mean of
+each group on rows and all data on columns. P-value matrix shows only
+values above 0.05. So, distances are low and groups are slightly
+different.</p>
+<p>This simulation study can serve as a starting point for more complex
+analyses, such as group comparisons in biodiversity studies, pattern
+analysis in multivariate data, or testing the effectiveness of
+statistical methods on simulated data. We advise that the results will
+be different each time you run the script due to the random nature of
+data generation, unless we set a fixed seed using “set.seed”.</p>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>In this work, I have presented my package “cmahalanobis”, which I
+created to calculate the Mahalanobis distance between two or more groups
+of multivariate data. The Mahalanobis distance is a measure of
+dissimilarity between two vectors of multivariate random variables,
+based on the covariance matrix. This distance is useful for matching or
+statistical data fusion, i.e., integrating two data sources that refer
+to the same target population and share some variables. My main goal was
+to compare the Mahalanobis distances between different types of data and
+explore patterns and relationships in the data. To create and use my
+package “cmahalanobis”, I used the programming language R and followed
+the guidelines for writing R packages provided by CRAN. I implemented my
+function “cmahalanobis”, which takes a list of data frames as input and
+returns a matrix with the Mahalanobis distances between the dataframes,
+plot and p-value matrix. I also created documentation for my package
+using the “roxygen2” package. To apply my function “cmahalanobis”, I
+used three datasets: iris, mtcars, and simulated dataset. The iris
+dataset contains measurements of sepal and petal length and width for
+three species of iris. The mtcars dataset contains the characteristics
+of 32 cars, including the type of transmission. The results showed that
+the Mahalanobis distance between different types of data varied
+depending on the considered variables and the direction of comparison.
+For example, in the iris dataset, the highest distance concern the mean
+of setosa and all data of virginica; the lowest distance with same
+statistics concerns virginica and versicolor, respectively. In the
+mtcars dataset, the Mahalanobis distance between cars with automatic and
+manual transmission significantly differs, indicating a strong
+dissimilarity between the two types of cars based on the other measured
+variables. The simulation study showed the functioning of the package on
+random data. My conclusions are that the Mahalanobis distance is a
+useful metric for matching or statistical data fusion because it
+accounts for variable correlations and ellipsoidal data shapes.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

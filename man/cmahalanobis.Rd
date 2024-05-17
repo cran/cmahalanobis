@@ -4,13 +4,24 @@
 \alias{cmahalanobis}
 \title{Calculate the Mahalanobis distance for each species}
 \usage{
-cmahalanobis(dataset)
+cmahalanobis(
+  dataset,
+  plot = TRUE,
+  p.value = FALSE,
+  plot_title = "Mahalanobis Distance Between Groups"
+)
 }
 \arguments{
 \item{dataset}{A list of data frames, where each data frame contains the observations of a species.}
+
+\item{plot}{Logical, if TRUE, a plot of the Mahalanobis distances is displayed.}
+
+\item{p.value}{Logical, if TRUE, a matrix of p-values for the distances is returned.}
+
+\item{plot_title}{The title to be used for the plot if plot is TRUE.}
 }
 \value{
-A matrix with the Mahalanobis distances between each pair of species.
+A list containing a matrix with the Mahalanobis distances between each pair of groups, and optionally a matrix of p-values and the plot.
 }
 \description{
 . This function takes a list of data frames as input, where each data frame contains the observations of a species, and returns a matrix with the Mahalanobis distances between each pair of species.
