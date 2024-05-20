@@ -41,7 +41,15 @@ virginica <- virginica[,-5]
 groups <- list(setosa, versicolor, virginica)
 
 # Calculate the Mahalanobis distance with the cmahalanobis function
-cmahalanobis(groups)
+cmahalanobis(groups, plot = TRUE, p.value = FALSE, 
+plot_title = "Mahalanobis Distance Between Groups")
+
+ceuclide(groups, plot = TRUE, p.value = TRUE, 
+plot_title = "Euclidean Distance Between Groups")
+cmanhattan(groups, plot = TRUE, p.value = TRUE, 
+plot_title = "Manhattan Distance Between Groups")
+cchebyshev(groups, plot = TRUE, p.value = TRUE, 
+plot_title = "Chebyshev Distance Between Groups")
 
 # Example with the mtcars dataset
 library(stats)
@@ -55,6 +63,14 @@ manual <- manual[,-9]
 groups <- list(auto, manual)
 
 # Calculate the Mahalanobis distance with the cmahalanobis function
-cmahalanobis(groups)
+cmahalanobis(groups, plot = TRUE, p.value = TRUE, 
+plot_title = "Mahalanobis Distance Between Groups")
+ceuclide(groups, plot = TRUE, p.value = TRUE, num.permutations = 1000, 
+plot_title = "Euclidean Distance Between Groups")
+cmanhattan(groups, plot = TRUE, p.value = TRUE, num.permutations = 1000, 
+plot_title = "Manhattan Distance Between Groups")
+cchebyshev(groups, plot = TRUE, p.value = TRUE, num.permutations = 1000, 
+plot_title = "Chebyshev Distance Between Groups")
+
 
 }
