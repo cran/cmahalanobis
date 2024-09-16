@@ -2,75 +2,42 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{cmahalanobis}
 \alias{cmahalanobis}
-\title{Calculate the Mahalanobis distance for each species}
+\title{Calculate the Mahalanobis distance for each species.}
 \usage{
 cmahalanobis(
   dataset,
+  formula,
   plot = TRUE,
-  p.value = FALSE,
   plot_title = "Mahalanobis Distance Between Groups"
 )
 }
 \arguments{
-\item{dataset}{A list of data frames, where each data frame contains the observations of a species.}
+\item{dataset}{A dataframe.}
 
-\item{plot}{Logical, if TRUE, a plot of the Mahalanobis distances is displayed.}
+\item{formula}{A factor which you want to calculate the Mahalanobis distances matrix.}
 
-\item{p.value}{Logical, if TRUE, a matrix of p-values for the distances is returned.}
+\item{plot}{Logical, if TRUE, a plot of Mahalanobis distances matrix is displayed.}
 
 \item{plot_title}{The title to be used for the plot if plot is TRUE.}
 }
 \value{
-A list containing a matrix with the Mahalanobis distances between each pair of groups, and optionally a matrix of p-values and the plot.
+A matrix containing Mahalanobis distances between each pair of groups and the plot.
 }
 \description{
-. This function takes a list of data frames as input, where each data frame contains the observations of a species, and returns a matrix with the Mahalanobis distances between each pair of species.
+This function takes a dataframe and a factor in input, and returns a matrix with the Mahalanobis distances about it.
 }
 \examples{
 # Example with the iris dataset
-library(stats)
-# Split the data into 3 parts for each species
-setosa <- subset(iris, Species == "setosa")
-setosa <- setosa[,-5]
-versicolor <- subset(iris, Species == "versicolor")
-versicolor <- versicolor[,-5]
-virginica <- subset(iris, Species == "virginica")
-virginica <- virginica[,-5]
 
-# Create a list with the three groups of flowers
-groups <- list(setosa, versicolor, virginica)
+data(iris)
 
 # Calculate the Mahalanobis distance with the cmahalanobis function
-cmahalanobis(groups, plot = TRUE, p.value = FALSE, 
-plot_title = "Mahalanobis Distance Between Groups")
-
-ceuclide(groups, plot = TRUE, p.value = TRUE, 
-plot_title = "Euclidean Distance Between Groups")
-cmanhattan(groups, plot = TRUE, p.value = TRUE, 
-plot_title = "Manhattan Distance Between Groups")
-cchebyshev(groups, plot = TRUE, p.value = TRUE, 
-plot_title = "Chebyshev Distance Between Groups")
+cmahalanobis(iris, ~Species, plot = TRUE, plot_title = "Mahalanobis Distance Between Groups")
 
 # Example with the mtcars dataset
-library(stats)
-# Split the data into 2 parts for each type of transmission
-auto <- subset(mtcars, am == 0)
-auto <- auto[,-9]
-manual <- subset(mtcars, am == 1)
-manual <- manual[,-9]
-
-# Create a list with the two groups of cars
-groups <- list(auto, manual)
+data(mtcars)
 
 # Calculate the Mahalanobis distance with the cmahalanobis function
-cmahalanobis(groups, plot = TRUE, p.value = TRUE, 
-plot_title = "Mahalanobis Distance Between Groups")
-ceuclide(groups, plot = TRUE, p.value = TRUE, num.permutations = 1000, 
-plot_title = "Euclidean Distance Between Groups")
-cmanhattan(groups, plot = TRUE, p.value = TRUE, num.permutations = 1000, 
-plot_title = "Manhattan Distance Between Groups")
-cchebyshev(groups, plot = TRUE, p.value = TRUE, num.permutations = 1000, 
-plot_title = "Chebyshev Distance Between Groups")
-
+cmahalanobis(mtcars, ~am, plot = TRUE, plot_title = "Mahalanobis Distance Between Groups")
 
 }

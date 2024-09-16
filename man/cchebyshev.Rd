@@ -2,30 +2,38 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{cchebyshev}
 \alias{cchebyshev}
-\title{Calculate Chebyshev distance}
+\title{Calculate the p_values matrix for each species, using Chebyshev distance as a base.}
 \usage{
 cchebyshev(
   dataset,
-  plot = FALSE,
-  p.value = FALSE,
-  num.permutations = 1000,
+  formula,
+  plot = TRUE,
   plot_title = "Chebyshev Distance Between Groups"
 )
 }
 \arguments{
-\item{dataset}{A list of dataframes}
+\item{dataset}{A dataframe.}
 
-\item{plot}{If TRUE, displays a plot of distances}
+\item{formula}{A factor which you want to calculate Chebyshev distance.}
 
-\item{p.value}{If TRUE, calculates p-values of distances}
+\item{plot}{If TRUE, displays a plot of distances.}
 
-\item{num.permutations}{Number of permutations to calculate p-values}
-
-\item{plot_title}{The title of plot}
+\item{plot_title}{The title of plot.}
 }
 \value{
-A list containing distances and, optionally, p-values
+A matrix containing distances and, optionally, the plot.
 }
 \description{
-Calculate Chebyshev distance
+This function takes a dataset, a factor, a p_value method, number of bootstraps and permutation when necessary, and returns a p_values matrix between each pair of species and a plot if the user select TRUE using the Chebyshev distance for the distances calculation.
+}
+\examples{
+# Example with iris dataset
+
+cchebyshev(iris, ~Species, plot = TRUE, plot_title = "Chebyshev Distance Between Groups")
+
+# Example with mtcars dataset
+
+cchebyshev(mtcars, ~am, plot = TRUE, plot_title = "Chebyshev Distance Between Groups")
+
+
 }

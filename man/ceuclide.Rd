@@ -2,30 +2,41 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{ceuclide}
 \alias{ceuclide}
-\title{Calculate Euclidean distance}
+\title{Calculate the Euclidean distance of a factor in a dataframe.}
 \usage{
 ceuclide(
   dataset,
-  plot = FALSE,
-  p.value = FALSE,
-  num.permutations = 1000,
+  formula,
+  plot = TRUE,
   plot_title = "Euclidean Distance Between Groups"
 )
 }
 \arguments{
-\item{dataset}{A list of dataframes}
+\item{dataset}{A dataframe.}
 
-\item{plot}{If TRUE, shows a plot of distances}
+\item{formula}{The factor which you want to calculate the Euclidean distances matrix.}
 
-\item{p.value}{If TRUE, calculates p-values for distances}
+\item{plot}{If TRUE, shows a plot of the Euclidean distances matrix.}
 
-\item{num.permutations}{Number of permutations to calculate p-values}
-
-\item{plot_title}{The title of plot}
+\item{plot_title}{The title of the plot.}
 }
 \value{
-A list containing distances and, optionally, p-values
+The matrix containing distances.
 }
 \description{
+This function takes a dataframe and a factor in input, and returns a matrix with the Euclidean distances about it.
+}
+\details{
 Calculate Euclidean distance
+}
+\examples{
+
+# Example with iris dataset
+
+ceuclide(iris, ~Species, plot = TRUE, plot_title = "Euclidean Distance Between Groups")
+
+# Example with mtcars dataset
+
+ceuclide(mtcars, ~am, plot = TRUE, plot_title = "Euclidean Distance Between Groups")
+
 }

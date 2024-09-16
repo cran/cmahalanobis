@@ -1,0 +1,227 @@
+---
+title: "Report Manhattan Distance"
+output: word_document
+params:
+  distances: NA
+  p_values: NA
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Assuming R Markdown package is installed
+
+knitr::opts_chunk$set(echo = FALSE)
+
+cmanhattan <- function(dataset, formula, plot = TRUE, plot_title = "Manhattan Distance Between Groups") {
+  # Verify that the input is a data frame
+  if (!is.data.frame(dataset)) {
+    stop("The input must be a dataframe")
+  }
+  
+  # Extract the response and predictor variables from the formula
+  response <- all.vars(formula)[1]
+  predictors <- all.vars(formula)[-1]
+  
+  # Split the data into groups based on the response variable
+  groups <- split(dataset, dataset[[response]])
+  
+  # Select only numeric variables in each group
+  groups <- lapply(groups, function(df) {
+    df <- df[, sapply(df, is.numeric)]  # Select only numeric columns
+    return(df)
+  })
+  
+  # Replace missing values with arithmetic mean in each dataframe into the list 
+  groups <- lapply(groups, impute_with_multiple_imputation)
+  
+  # Obtain the number of groups
+  n <- length(groups)
+  
+  # Precalculate means and covariances
+  means <- lapply(groups, colMeans)
+  covariances <- lapply(groups, function(df) {
+    cov_matrix <- cov(df)
+    n <- nrow(cov_matrix)
+    reg <- 0.00001  # Valore di regolarizzazione
+    cov_matrix <- cov_matrix + diag(reg, nrow = n)
+    return(cov_matrix)
+  })
+  
+  # Create a empty matrix to store distances
+  distances <- matrix(0, nrow = n, ncol = n)
+  
+  # Calculate Manhattan distance between each couple of groups
+  for (i in 1:n) {
+    mean_i <- means[[i]] # Precalculated mean in the group i
+    for (j in 1:n) {
+      if (i != j) {
+        distances[i, j] <- sum(abs(mean_i - means[[j]]))
+      }
+    }
+  }
+  
+  # If plot is TRUE, call the "plot_manhattan_distances" function and print the plot
+  if (plot) {
+    print(plot_manhattan_distances(distances, plot_title))
+  }
+  
+  # Return a list containing distances
+  return(list(distances = distances))
+}
+
+# Auxiliary function to impute missing values with the mean 
+impute_with_multiple_imputation <- function(df, m = 5, method = "cart") {
+  # Imputazione multipla utilizzando mice
+  imp <- mice(df, m = m, method = method)
+  imputedData <- complete(imp, action = 1)
+  return(imputedData)
+}
+
+# Auxiliary function to print the Manhattan distances plot 
+plot_manhattan_distances <- function(distances, plot_title) {
+  requireNamespace("ggplot2")
+  requireNamespace("reshape2")
+  output_df <- as.data.frame(distances)
+  output_df$Species <- rownames(output_df)
+  
+  output_df_long <- reshape2::melt(output_df, id.vars = "Species")
+  colnames(output_df_long) <- c("Species", "Comparison", "Distance")
+  
+  ggplot2::ggplot(output_df_long, ggplot2::aes(x = Species, y = Distance, fill = Comparison)) +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::labs(title = plot_title, x = "Species", y = "Distance", fill = "Comparison") +
+    ggplot2::theme_minimal()
+}
+
+
+pvaluescmanh <- function(dataset, formula, pvalue.method = "chisq", num.permutations = 100, num.bootstraps = 10, plot = TRUE) {
+  # Verify that input is a dataframe
+  if (!is.data.frame(dataset)) {
+    stop("dataset must be a dataframe")
+  }
+  
+  # Extract the response variable name by the formula
+  response <- all.vars(formula)[1]
+  
+  # Verify the presence of the response variable
+  if (!response %in% names(dataset)) {
+    stop(paste("The response variable", response, "isn't present"))
+  }
+  
+  # Calculate Manhattan distances using "cmanhattan" function
+  cmanhattan_results <- cmanhattan(dataset, formula, plot = FALSE)
+  distances <- cmanhattan_results$distances
+  
+  # Obtain the groups number
+  n <- nrow(distances)
+  
+  # Initialize p_value matrix
+  p_values <- matrix(NA, nrow = n, ncol = n)
+  
+  # Calculate p_values
+  for (i in 1:n) {
+    df <- ncol(dataset) - 1  # Degrees of freedom (adjusted for matrix covariance estimate)
+    for (j in 1:n) {
+      if (i != j) {
+        # Choose p_values method calculation based user inputs
+        if (pvalue.method == "chisq") {
+          p_values[i, j] <- pchisq(distances[i, j], df, lower.tail = FALSE, log.p = TRUE)
+        } else if (pvalue.method == "permutation") {
+          # Permutation test
+          observed_distance <- distances[i, j]
+          permutation_distances <- replicate(num.permutations, {
+            # Permute labels group and recalculate the distance
+            permuted_data <- dataset
+            permuted_data[[response]] <- sample(dataset[[response]])
+            permuted_results <- cmanhattan(permuted_data, formula, plot = FALSE)
+            permuted_distances <- permuted_results$distances
+            return(permuted_distances[i, j])
+          })
+          p_values[i, j] <- mean(permutation_distances >= observed_distance)
+        } else if (pvalue.method == "bootstrap") {
+          # Bootstrap
+          observed_distance <- distances[i, j]
+          bootstrap_distances <- replicate(num.bootstraps, {
+            # Extract a sample with repetition 
+            bootstrap_sample <- sample(nrow(dataset), replace = TRUE)
+            bootstrap_data <- dataset[bootstrap_sample, ]
+            bootstrap_results <- cmanhattan(bootstrap_data, formula, plot = FALSE)
+            bootstrap_distance <- bootstrap_results$distances[i, j]
+            return(bootstrap_distance)
+          })
+          p_values[i, j] <- mean(abs(bootstrap_distances) >= abs(observed_distance))
+        } else {
+          stop("p_values calculation method not supported. Use 'chisq', 'permutation' or 'bootstrap'.")
+        }
+      }
+    }
+  }
+  
+  # Create heatmap if plot is TRUE
+  if (plot) {
+    requireNamespace("reshape2")
+    requireNamespace("ggplot2")
+    p_values_melt <- reshape2::melt(p_values, na.rm = TRUE)
+    colnames(p_values_melt) <- c("Var1", "Var2", "value")
+    
+    print(ggplot2::ggplot(data = p_values_melt, ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+            ggplot2::geom_tile() +
+            ggplot2::scale_fill_gradient(low = "white", high = "red") +
+            ggplot2::labs(title = "p_values heatmap", x = "", y = "", fill = "p_value") +
+            ggplot2::theme_minimal() +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)))
+  }
+  
+  return(p_values)
+}
+
+plot_p_values <- function(p_values, plot_title = "p_values heatmap") {
+ requireNamespace("ggplot2")
+  requireNamespace("reshape2")
+  output_df <- as.data.frame(p_values)
+  output_df$Species <- rownames(output_df)
+  
+  output_df_long <- reshape2::melt(output_df, id.vars = "Species")
+  colnames(output_df_long) <- c("Species", "Comparison", "Distance")
+  
+  ggplot2::ggplot(output_df_long, ggplot2::aes(x = Species, y = Distance, fill = Comparison)) +
+    ggplot2::geom_bar(stat = "identity", position = "dodge") +
+    ggplot2::labs(title = plot_title, x = "Species", y = "Distance", fill = "Comparison") +
+    ggplot2::theme_minimal()
+}
+
+
+
+
+
+distances <- params$distances  # Replace with your actual distances data
+p_values <- params$p_values    # Replace with your actual p_values data
+
+
+if (!is.null(distances) && !all(is.na(distances))) {
+  knitr::kable(distances, caption = "Manhattan Distances")
+} else {
+  print("No distances available")
+}
+
+if (!is.null(p_values) && !all(is.na(p_values))) {
+   knitr::kable(p_values, caption = "p_values")
+} else {
+  print("No p_values available")
+}
+
+if (!is.null(p_values) && !all(is.na(p_values))) {
+  plot_p_values(p_values, "P_Values")
+} else {
+  print("No p_values available")
+}
+
+if (!is.null(distances) && !all(is.na(distances))) {
+  plot_manhattan_distances(distances, "Manhattan Distance Between Groups")
+} else {
+  print("No distances available for plotting")
+}
+
+
+```
+
+

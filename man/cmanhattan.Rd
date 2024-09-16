@@ -2,30 +2,40 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{cmanhattan}
 \alias{cmanhattan}
-\title{Calculate Manhattan distance}
+\title{Calculate a Manhattan distance of a factor in a dataframe.}
 \usage{
 cmanhattan(
   dataset,
-  plot = FALSE,
-  p.value = FALSE,
-  num.permutations = 1000,
+  formula,
+  plot = TRUE,
   plot_title = "Manhattan Distance Between Groups"
 )
 }
 \arguments{
-\item{dataset}{A list of dataframes}
+\item{dataset}{A dataframe.}
 
-\item{plot}{If TRUE, show a plot of distances}
+\item{formula}{A factor which you want to calculate Manhattan distance.}
 
-\item{p.value}{If TRUE, calculates p-values to distances}
+\item{plot}{If TRUE, show a plot of distances.}
 
-\item{num.permutations}{Number of permutations to calculate p-values}
-
-\item{plot_title}{The title of plot}
+\item{plot_title}{The title of plot.}
 }
 \value{
-A list containing distances and, optionally, p-values
+A matrix containing distances.
 }
 \description{
+This function takes a dataframe and a factor in input, and returns a matrix with the Manhattan distances about it.
+}
+\details{
 Calculate Manhattan distance
+}
+\examples{
+# Example with iris dataset
+
+cmanhattan(iris, ~Species, plot = TRUE, plot_title = "Manhattan Distance Between Groups")
+
+# Example with mtcars dataset
+
+cmanhattan(mtcars, ~am, plot = TRUE, plot_title = "Manhattan Distance Between Groups")
+
 }
