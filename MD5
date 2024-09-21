@@ -1,6 +1,6 @@
-401893600f5bf5433c10b4d966d848d7 *DESCRIPTION
+9eef97038b451329123c696a543b93c4 *DESCRIPTION
 89138f3beb1503e5526bb6ea943d4976 *NAMESPACE
-486233d88eea4360f9b77356b5635e71 *R/cmahalanobis.R
+44b06379fff07504a3d68667939bca26 *R/cmahalanobis.R
 bf98df6dc1e0b0756b549f66ff978c07 *R/zzz.R
 60ad7425e2afd402c75c174912346df9 *inst/rmarkdown/template_report_cchebyshev.Rmd
 6c8d18892bc20b12718463587bdd47f1 *inst/rmarkdown/template_report_ceuclide.Rmd
@@ -19,5 +19,5 @@ e78914bae030c6a0d125ef4c82e88a2b *man/generate_report_ceuclide.Rd
 1a4f1ff1abbb2bd2699cc9e4a2896b6b *man/pvaluescmaha.Rd
 512edcbf20a561a27f898a149da84880 *man/pvaluescmanh.Rd
 19f89769556256bbec7edf46be21b0cf *tests/testthat.R
-486233d88eea4360f9b77356b5635e71 *tests/testthat/cmahalanobis.R
+44b06379fff07504a3d68667939bca26 *tests/testthat/cmahalanobis.R
 d41d8cd98f00b204e9800998ecf8427e *tests/testthat/test-cmahalanobis.R

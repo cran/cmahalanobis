@@ -75,7 +75,7 @@ cmahalanobis <- function(dataset, formula, plot = TRUE, plot_title = "Mahalanobi
   covariances <- lapply(groups, function(df) {
     cov_matrix <- cov(df)
     n <- nrow(cov_matrix)
-    reg <- 0.00001  # Regularization value
+    reg <- 0.01  # Regularization value
     cov_matrix <- cov_matrix + diag(reg, nrow = n)
     return(cov_matrix)
   })
@@ -167,6 +167,12 @@ generate_report_cmahalanobis <- function(dataset, formula, pvalue.method = "chis
   } else if (pvalue.method == "bootstrap") {
     p_values <- pvaluescmaha(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
   }
+  
+  output_dir <- tempdir()
+  output_file <- file.path(output_dir, "reportcmahalanobis.docx")
+  
+  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
+  
   
   # Assuming the path to your template is correct
   rmarkdown::render(system.file("rmarkdown", "template_report_cmahalanobis.Rmd", package = "cmahalanobis"),
@@ -330,7 +336,7 @@ ceuclide <- function(dataset, formula, plot = TRUE, plot_title = "Euclidean Dist
   covariances <- lapply(groups, function(df) {
     cov_matrix <- cov(df)
     n <- nrow(cov_matrix)
-    reg <- 0.00001  # Regularization value
+    reg <- 0.01  # Regularization value
     cov_matrix <- cov_matrix + diag(reg, nrow = n)
     return(cov_matrix)
   })
@@ -413,6 +419,12 @@ generate_report_ceuclide <- function(dataset, formula, pvalue.method = "chisq", 
   } else if (pvalue.method == "bootstrap") {
     p_values <- pvaluesceucl(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
   }
+  
+  output_dir <- tempdir()
+  output_file <- file.path(output_dir, "reportceuclide.docx")
+  
+  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
+  
   
   # Assuming the path to your template is correct
   rmarkdown::render(system.file("rmarkdown", "template_report_ceuclide.Rmd", package = "cmahalanobis"),
@@ -572,7 +584,7 @@ cmanhattan <- function(dataset, formula, plot = TRUE, plot_title = "Manhattan Di
   covariances <- lapply(groups, function(df) {
     cov_matrix <- cov(df)
     n <- nrow(cov_matrix)
-    reg <- 0.00001  # Regularization value
+    reg <- 0.01  # Regularization value
     cov_matrix <- cov_matrix + diag(reg, nrow = n)
     return(cov_matrix)
   })
@@ -656,6 +668,12 @@ generate_report_cmanhattan <- function(dataset, formula, pvalue.method = "chisq"
   } else if (pvalue.method == "bootstrap") {
     p_values <- pvaluescmanh(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
   }
+  
+  output_dir <- tempdir()
+  output_file <- file.path(output_dir, "reportcmanhattan.docx")
+  
+  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
+  
   
   # Assuming the path to your template is correct
   rmarkdown::render(system.file("rmarkdown", "template_report_cmanhattan.Rmd", package = "cmahalanobis"),
@@ -812,7 +830,7 @@ cchebyshev <- function(dataset, formula, plot = TRUE, plot_title = "Chebyshev Di
   covariances <- lapply(groups, function(df) {
     cov_matrix <- cov(df)
     n <- nrow(cov_matrix)
-    reg <- 0.00001  # Regularization value
+    reg <- 0.01  # Regularization value
     cov_matrix <- cov_matrix + diag(reg, nrow = n)
     return(cov_matrix)
   })
@@ -895,6 +913,11 @@ generate_report_cchebyshev <- function(dataset, formula, pvalue.method = "chisq"
   } else if (pvalue.method == "bootstrap") {
     p_values <- pvaluesccheb(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
   }
+  
+  output_dir <- tempdir()
+  output_file <- file.path(output_dir, "reportcchebyshev.docx")
+  
+  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
   
   
   
@@ -1005,3 +1028,4 @@ pvaluesccheb <- function(dataset, formula, pvalue.method = "chisq", num.permutat
   
   return(p_values)
 }
+
