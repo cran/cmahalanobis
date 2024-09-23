@@ -41,7 +41,7 @@ cchebyshev <- function(dataset, formula, plot = TRUE, plot_title = "Chebyshev Di
   covariances <- lapply(groups, function(df) {
     cov_matrix <- cov(df)
     n <- nrow(cov_matrix)
-    reg <- 0.00001  # Regularization value
+    reg <- 0.01  # Regularization value
     cov_matrix <- cov_matrix + diag(reg, nrow = n)
     return(cov_matrix)
   })

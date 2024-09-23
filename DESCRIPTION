@@ -2,7 +2,7 @@ Package: cmahalanobis
 Type: Package
 Title: Calculate Distance Measures for a Given List of Data Frames with
         Factors
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: person(given = "Flavio",
                   family = "Gioia",
                   role = c("aut", "cre"),
@@ -16,7 +16,7 @@ Imports: stats, ggplot2, reshape2, mice
 Suggests: rmarkdown, testthat (>= 3.0.0)
 NeedsCompilation: no
 Config/testthat/edition: 3
-Packaged: 2024-09-21 13:57:50 UTC; flavi
+Packaged: 2024-09-23 18:09:04 UTC; flavi
 Author: Flavio Gioia [aut, cre]
 Repository: CRAN
-Date/Publication: 2024-09-21 22:40:09 UTC
+Date/Publication: 2024-09-23 22:00:22 UTC

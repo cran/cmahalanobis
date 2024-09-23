@@ -161,24 +161,54 @@ generate_report_cmahalanobis <- function(dataset, formula, pvalue.method = "chis
   cmahalanobis_results <- cmahalanobis(dataset, formula)
   distances <- cmahalanobis_results
   if (pvalue.method == "chisq") {
-    p_values <- pvaluescmaha(dataset, formula, pvalue.method = "chisq")  # Adjust method if needed
+    p_values <- pvaluescmaha(dataset, formula, pvalue.method = "chisq")
   } else if (pvalue.method == "permutation") {
-    p_values <- pvaluescmaha(dataset, formula, pvalue.method = "permutation")  # Adjust method if needed
+    p_values <- pvaluescmaha(dataset, formula, pvalue.method = "permutation")
   } else if (pvalue.method == "bootstrap") {
-    p_values <- pvaluescmaha(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
+    p_values <- pvaluescmaha(dataset, formula, pvalue.method = "bootstrap")
   }
   
-  output_dir <- tempdir()
-  output_file <- file.path(output_dir, "reportcmahalanobis.docx")
+  dir_path <- file.path(getwd(), "reportcmahalanobis_files/figure-docx")
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
   
-  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
+  template_path <- system.file("rmarkdown", "template_report_cmahalanobis.Rmd", package = "cmahalanobis")
+  if (file.exists(template_path)) {
+    message("Template found at: ", template_path)
+  } else {
+    stop("Template not found!")
+  }
   
+  output_file <- "reportcmahalanobis.docx"
+  tryCatch({
+    rmarkdown::render(template_path,
+                      params = list(distances = distances, p_values = p_values),
+                      output_file = output_file)
+  }, error = function(e) {
+    message("Error during rendering: ", e$message)
+  })
   
-  # Assuming the path to your template is correct
-  rmarkdown::render(system.file("rmarkdown", "template_report_cmahalanobis.Rmd", package = "cmahalanobis"),
-                    params = list(distances = distances, p_values = p_values),
-                    output_file = "reportcmahalanobis.docx")
+  get_desktop_path <- function() {
+    home <- Sys.getenv("HOME")
+    sysname <- Sys.info()["sysname"]
+    if (sysname == "Windows") {
+      return(file.path(Sys.getenv("USERPROFILE"), "Desktop"))
+    } else if (sysname == "Darwin") {  
+      return(file.path(home, "Desktop"))
+    } else if (sysname == "Linux") {  
+      return(file.path(home, "Desktop"))
+    } else {
+      stop("Unsupported OS")
+    }
+  }
+  
+  desktop_path <- get_desktop_path()
+  file.rename(output_file, file.path(desktop_path, output_file))
+  
+  unlink("reportcmahalanobis_files", recursive = TRUE)
 }
+
 
 
 
@@ -413,24 +443,54 @@ generate_report_ceuclide <- function(dataset, formula, pvalue.method = "chisq", 
   ceuclide_results <- ceuclide(dataset, formula)
   distances <- ceuclide_results
   if (pvalue.method == "chisq") {
-    p_values <- pvaluesceucl(dataset, formula, pvalue.method = "chisq")  # Adjust method if needed
+    p_values <- pvaluesceucl(dataset, formula, pvalue.method = "chisq")
   } else if (pvalue.method == "permutation") {
-    p_values <- pvaluesceucl(dataset, formula, pvalue.method = "permutation")  # Adjust method if needed
+    p_values <- pvaluesceucl(dataset, formula, pvalue.method = "permutation")
   } else if (pvalue.method == "bootstrap") {
-    p_values <- pvaluesceucl(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
+    p_values <- pvaluesceucl(dataset, formula, pvalue.method = "bootstrap")
   }
   
-  output_dir <- tempdir()
-  output_file <- file.path(output_dir, "reportceuclide.docx")
+  dir_path <- file.path(getwd(), "reportceuclide_files/figure-docx")
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
   
-  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
+  template_path <- system.file("rmarkdown", "template_report_ceuclide.Rmd", package = "cmahalanobis")
+  if (file.exists(template_path)) {
+    message("Template found at: ", template_path)
+  } else {
+    stop("Template not found!")
+  }
   
+  output_file <- "reportceuclide.docx"
+  tryCatch({
+    rmarkdown::render(template_path,
+                      params = list(distances = distances, p_values = p_values),
+                      output_file = output_file)
+  }, error = function(e) {
+    message("Error during rendering: ", e$message)
+  })
   
-  # Assuming the path to your template is correct
-  rmarkdown::render(system.file("rmarkdown", "template_report_ceuclide.Rmd", package = "cmahalanobis"),
-                    params = list(distances = distances, p_values = p_values),
-                    output_file = "reportceuclide.docx")
+  get_desktop_path <- function() {
+    home <- Sys.getenv("HOME")
+    sysname <- Sys.info()["sysname"]
+    if (sysname == "Windows") {
+      return(file.path(Sys.getenv("USERPROFILE"), "Desktop"))
+    } else if (sysname == "Darwin") {  
+      return(file.path(home, "Desktop"))
+    } else if (sysname == "Linux") {  
+      return(file.path(home, "Desktop"))
+    } else {
+      stop("Unsupported OS")
+    }
+  }
+  
+  desktop_path <- get_desktop_path()
+  file.rename(output_file, file.path(desktop_path, output_file))
+  
+  unlink("reportceuclide_files", recursive = TRUE)
 }
+
 
 
 
@@ -662,24 +722,56 @@ generate_report_cmanhattan <- function(dataset, formula, pvalue.method = "chisq"
   cmanhattan_results <- cmanhattan(dataset, formula)
   distances <- cmanhattan_results
   if (pvalue.method == "chisq") {
-    p_values <- pvaluescmanh(dataset, formula, pvalue.method = "chisq")  # Adjust method if needed
+    p_values <- pvaluescmanh(dataset, formula, pvalue.method = "chisq")
   } else if (pvalue.method == "permutation") {
-    p_values <- pvaluescmanh(dataset, formula, pvalue.method = "permutation")  # Adjust method if needed
+    p_values <- pvaluescmanh(dataset, formula, pvalue.method = "permutation")
   } else if (pvalue.method == "bootstrap") {
-    p_values <- pvaluescmanh(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
+    p_values <- pvaluescmanh(dataset, formula, pvalue.method = "bootstrap")
   }
   
-  output_dir <- tempdir()
-  output_file <- file.path(output_dir, "reportcmanhattan.docx")
+  dir_path <- file.path(getwd(), "reportcmanhattan_files/figure-docx")
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
   
-  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
+  template_path <- system.file("rmarkdown", "template_report_cmanhattan.Rmd", package = "cmahalanobis")
+  if (file.exists(template_path)) {
+    message("Template found at: ", template_path)
+  } else {
+    stop("Template not found!")
+  }
   
+  output_file <- "reportcmanhattan.docx"
+  tryCatch({
+    rmarkdown::render(template_path,
+                      params = list(distances = distances, p_values = p_values),
+                      output_file = output_file)
+  }, error = function(e) {
+    message("Error during rendering: ", e$message)
+  })
   
-  # Assuming the path to your template is correct
-  rmarkdown::render(system.file("rmarkdown", "template_report_cmanhattan.Rmd", package = "cmahalanobis"),
-                    params = list(distances = distances, p_values = p_values),
-                    output_file = "reportcmanhattan.docx")
+  get_desktop_path <- function() {
+    home <- Sys.getenv("HOME")
+    sysname <- Sys.info()["sysname"]
+    if (sysname == "Windows") {
+      return(file.path(Sys.getenv("USERPROFILE"), "Desktop"))
+    } else if (sysname == "Darwin") {  
+      return(file.path(home, "Desktop"))
+    } else if (sysname == "Linux") {  
+      return(file.path(home, "Desktop"))
+    } else {
+      stop("Unsupported OS")
+    }
+  }
+  
+  desktop_path <- get_desktop_path()
+  file.rename(output_file, file.path(desktop_path, output_file))
+  
+  unlink("reportcmanhattan_files", recursive = TRUE)
 }
+
+
+
 
 #' @name pvaluescmanh
 #' @title Calculate the p_values matrix for each species, using Manhattan distance as a base.
@@ -907,26 +999,53 @@ generate_report_cchebyshev <- function(dataset, formula, pvalue.method = "chisq"
   cchebyshev_results <- cchebyshev(dataset, formula)
   distances <- cchebyshev_results
   if (pvalue.method == "chisq") {
-    p_values <- pvaluesccheb(dataset, formula, pvalue.method = "chisq")  # Adjust method if needed
+    p_values <- pvaluesccheb(dataset, formula, pvalue.method = "chisq")
   } else if (pvalue.method == "permutation") {
-    p_values <- pvaluesccheb(dataset, formula, pvalue.method = "permutation")  # Adjust method if needed
+    p_values <- pvaluesccheb(dataset, formula, pvalue.method = "permutation")
   } else if (pvalue.method == "bootstrap") {
-    p_values <- pvaluesccheb(dataset, formula, pvalue.method = "bootstrap")  # Adjust method if needed
+    p_values <- pvaluesccheb(dataset, formula, pvalue.method = "bootstrap")
   }
   
-  output_dir <- tempdir()
-  output_file <- file.path(output_dir, "reportcchebyshev.docx")
+  dir_path <- file.path(getwd(), "reportcchebyshev_files/figure-docx")
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
   
-  dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
+  template_path <- system.file("rmarkdown", "template_report_cchebyshev.Rmd", package = "cmahalanobis")
+  if (file.exists(template_path)) {
+    message("Template found at: ", template_path)
+  } else {
+    stop("Template not found!")
+  }
   
+  output_file <- "reportcchebyshev.docx"
+  tryCatch({
+    rmarkdown::render(template_path,
+                      params = list(distances = distances, p_values = p_values),
+                      output_file = output_file)
+  }, error = function(e) {
+    message("Error during rendering: ", e$message)
+  })
   
+  get_desktop_path <- function() {
+    home <- Sys.getenv("HOME")
+    sysname <- Sys.info()["sysname"]
+    if (sysname == "Windows") {
+      return(file.path(Sys.getenv("USERPROFILE"), "Desktop"))
+    } else if (sysname == "Darwin") {  
+      return(file.path(home, "Desktop"))
+    } else if (sysname == "Linux") {  
+      return(file.path(home, "Desktop"))
+    } else {
+      stop("Unsupported OS")
+    }
+  }
   
-  # Assuming the path to your template is correct
-  rmarkdown::render(system.file("rmarkdown", "template_report_cchebyshev.Rmd", package = "cmahalanobis"),
-                    params = list(distances = distances, p_values = p_values),
-                    output_file = "reportcchebyshev.docx")
+  desktop_path <- get_desktop_path()
+  file.rename(output_file, file.path(desktop_path, output_file))
+  
+  unlink("reportcchebyshev_files", recursive = TRUE)
 }
-
 
 
 

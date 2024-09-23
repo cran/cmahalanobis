@@ -1,11 +1,11 @@
-9eef97038b451329123c696a543b93c4 *DESCRIPTION
+ca13b12f81d7a7759e7036cee5726d5a *DESCRIPTION
 89138f3beb1503e5526bb6ea943d4976 *NAMESPACE
-44b06379fff07504a3d68667939bca26 *R/cmahalanobis.R
+30ae909e127e8ce5e7c66158190ed0dd *R/cmahalanobis.R
 bf98df6dc1e0b0756b549f66ff978c07 *R/zzz.R
-60ad7425e2afd402c75c174912346df9 *inst/rmarkdown/template_report_cchebyshev.Rmd
-6c8d18892bc20b12718463587bdd47f1 *inst/rmarkdown/template_report_ceuclide.Rmd
-9825cdb838e8d7d739740ffd62c2d2ef *inst/rmarkdown/template_report_cmahalanobis.Rmd
-c4ef867a7c1e9f28a162d9404e6aeae0 *inst/rmarkdown/template_report_cmanhattan.Rmd
+0a94c663a5202a4e60b041f961c281ae *inst/rmarkdown/template_report_cchebyshev.Rmd
+0a5df7ba73e132cf2524fc3c1da10f07 *inst/rmarkdown/template_report_ceuclide.Rmd
+a3fe5080202e751b00db0e77ce86123d *inst/rmarkdown/template_report_cmahalanobis.Rmd
+ed45d5202b0b4baba060c31c97aece3f *inst/rmarkdown/template_report_cmanhattan.Rmd
 0272c3a67adcccbcb153db50c1884a47 *man/cchebyshev.Rd
 645ec91eb1d466ed385dca8cb8c4725c *man/ceuclide.Rd
 d3389311e015cb21daeecb3deafcd406 *man/cmahalanobis.Rd
@@ -19,5 +19,5 @@ e78914bae030c6a0d125ef4c82e88a2b *man/generate_report_ceuclide.Rd
 1a4f1ff1abbb2bd2699cc9e4a2896b6b *man/pvaluescmaha.Rd
 512edcbf20a561a27f898a149da84880 *man/pvaluescmanh.Rd
 19f89769556256bbec7edf46be21b0cf *tests/testthat.R
-44b06379fff07504a3d68667939bca26 *tests/testthat/cmahalanobis.R
+30ae909e127e8ce5e7c66158190ed0dd *tests/testthat/cmahalanobis.R
 d41d8cd98f00b204e9800998ecf8427e *tests/testthat/test-cmahalanobis.R
