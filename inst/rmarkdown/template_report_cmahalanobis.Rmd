@@ -49,7 +49,7 @@ cmahalanobis <- function(dataset, formula, plot = TRUE, plot_title = "Mahalanobi
   # Create a empty matrix to store distances
   distances <- matrix(0, nrow = n, ncol = n)
   
-  # Calculate Mahalanobis distance between each couple of groups
+  # Calculate Mahalanobis distance between each pair of groups
   for (i in 1:n) {
     mean_i <- means[[i]]
     cov_i <- covariances[[i]]

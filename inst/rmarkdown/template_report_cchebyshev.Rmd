@@ -30,26 +30,19 @@ cchebyshev <- function(dataset, formula, plot = TRUE, plot_title = "Chebyshev Di
     return(df)
   })
   
-  # Replace missing values with arithmetic mean in each dataframe into the list 
+  # Replace missing values with multiple imputation in each dataframe into the list 
   groups <- lapply(groups, impute_with_multiple_imputation)
   
   # Obtain the number of groups
   n <- length(groups)
   
-  # Precalculate means and covariances
+  # Precalculate means 
   means <- lapply(groups, colMeans)
-  covariances <- lapply(groups, function(df) {
-    cov_matrix <- cov(df)
-    n <- nrow(cov_matrix)
-    reg <- 0.01  # Regularization value
-    cov_matrix <- cov_matrix + diag(reg, nrow = n)
-    return(cov_matrix)
-  })
   
   # Create a empty matrix to store distances
   distances <- matrix(0, nrow = n, ncol = n)
   
-  # Calculate Chebyshev distance between each couple of groups
+  # Calculate Chebyshev distance between each pair of groups
   for (i in 1:n) {
     mean_i <- means[[i]]  # Precalculated mean in the group i
     for (j in 1:n) {
@@ -68,7 +61,7 @@ cchebyshev <- function(dataset, formula, plot = TRUE, plot_title = "Chebyshev Di
   return(list(distances = distances))
 }
 
-# Auxiliary function to impute missing values with the mean 
+# Auxiliary function to impute missing values with the multiple imputation
 impute_with_multiple_imputation <- function(df, m = 5, method = "cart") {
   # Multiple imputation using mice
   imp <- mice(df, m = m, method = method)
@@ -107,6 +100,8 @@ plot_p_values <- function(p_values, plot_title = "p_values heatmap") {
     ggplot2::labs(title = plot_title, x = "Species", y = "Distance", fill = "Comparison") +
     ggplot2::theme_minimal()
 }
+
+
 
 
 pvaluesccheb <- function(dataset, formula, pvalue.method = "chisq", num.permutations = 100, num.bootstraps = 10, plot = TRUE) {
@@ -229,5 +224,3 @@ if (!is.null(distances) && !all(is.na(distances))) {
 
 
 ```
-
-

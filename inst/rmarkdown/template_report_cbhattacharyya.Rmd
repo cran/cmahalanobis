@@ -1,5 +1,5 @@
 ---
-title: "Report Manhattan Distance"
+title: "Report Bhattacharyya Distance"
 output: word_document
 params:
   distances: NA
@@ -11,7 +11,7 @@ params:
 
 knitr::opts_chunk$set(echo = FALSE)
 
-cmanhattan <- function(dataset, formula, plot = TRUE, plot_title = "Manhattan Distance Between Groups") {
+cbhattacharyya <- function(dataset, formula, plot = TRUE, plot_title = "Bhattacharyya Distance Between Groups") {
   # Verify that the input is a data frame
   if (!is.data.frame(dataset)) {
     stop("The input must be a dataframe")
@@ -30,34 +30,51 @@ cmanhattan <- function(dataset, formula, plot = TRUE, plot_title = "Manhattan Di
     return(df)
   })
   
-  # Replace missing values with the multiple imputation in each dataframe into the list
+  # Replace missing values with the multiple imputation in each dataframe into the list 
   groups <- lapply(groups, impute_with_multiple_imputation)
   
   # Obtain the number of groups
   n <- length(groups)
   
-  # Precalculate means 
+  # Precalculate means and covariances
   means <- lapply(groups, colMeans)
+  covariances <- lapply(groups, function(df) {
+    cov_matrix <- cov(df)
+    n <- nrow(cov_matrix)
+    reg <- 0.01  # Regularization value
+    cov_matrix <- cov_matrix + diag(reg, nrow = n)
+    return(cov_matrix)
+  })
   
   # Create an empty matrix to store distances
   distances <- matrix(0, nrow = n, ncol = n)
   
-  # Calculate Manhattan distance between each pair of groups
+  # Calculate Bhattacharyya distance between each couple of groups
   for (i in 1:n) {
-    mean_i <- means[[i]] # Precalculated mean of group i
+    mean_i <- means[[i]] # Precalculated mean in group i
+    cov_i <- covariances[[i]]
     for (j in 1:n) {
       if (i != j) {
-        distances[i, j] <- sum(abs(mean_i - means[[j]]))
+        mean_j <- means[[j]]
+        cov_j <- covariances[[j]]
+        
+        # Calculate the average covariance matrix
+        cov_mean <- (cov_i + cov_j) / 2
+        
+        # Calculate the Bhattacharyya distance
+        term1 <- 0.25 * t(mean_i - mean_j) %*% solve(cov_mean) %*% (mean_i - mean_j)
+        term2 <- 0.5 * log(det(cov_mean) / sqrt(det(cov_i) * det(cov_j)))
+        distances[i, j] <- term1 + term2
       }
     }
   }
   
-  # If plot is TRUE, call the "plot_manhattan_distances" function and print the plot
+  # If plot is TRUE, call the "plot_bhattacharyya_distances" function and print the plot
   if (plot) {
-    print(plot_manhattan_distances(distances, plot_title))
+    print(plot_bhattacharyya_distances(distances, plot_title))
   }
   
-  # Return a matrix containing distances
+  # Return a list containing distances
   return(list(distances = distances))
 }
 
@@ -69,8 +86,8 @@ impute_with_multiple_imputation <- function(df, m = 5, method = "cart") {
   return(imputedData)
 }
 
-# Auxiliary function to print the Manhattan distances plot 
-plot_manhattan_distances <- function(distances, plot_title) {
+# Auxiliary function to print the Bhattacharyya distances plot
+plot_bhattacharyya_distances <- function(distances, plot_title) {
   requireNamespace("ggplot2")
   requireNamespace("reshape2")
   output_df <- as.data.frame(distances)
@@ -85,7 +102,8 @@ plot_manhattan_distances <- function(distances, plot_title) {
     ggplot2::theme_minimal()
 }
 
-pvaluescmanh <- function(dataset, formula, pvalue.method = "chisq", num.permutations = 100, num.bootstraps = 10, plot = TRUE) {
+
+pvaluescbatt <- function(dataset, formula, pvalue.method = "chisq", num.permutations = 100, num.bootstraps = 10, plot = TRUE) {
   # Verify that input is a dataframe
   if (!is.data.frame(dataset)) {
     stop("dataset must be a dataframe")
@@ -99,9 +117,9 @@ pvaluescmanh <- function(dataset, formula, pvalue.method = "chisq", num.permutat
     stop(paste("The response variable", response, "isn't present"))
   }
   
-  # Calculate Manhattan distances using "cmanhattan" function
-  cmanhattan_results <- cmanhattan(dataset, formula, plot = FALSE)
-  distances <- cmanhattan_results$distances
+  # Calculate Bhattacharyya distances using "cbhattacharyya" function
+  cbhattacharyya_results <- cbhattacharyya(dataset, formula, plot = FALSE)
+  distances <- cbhattacharyya_results$distances
   
   # Obtain the groups number
   n <- nrow(distances)
@@ -124,7 +142,7 @@ pvaluescmanh <- function(dataset, formula, pvalue.method = "chisq", num.permutat
             # Permute labels group and recalculate the distance
             permuted_data <- dataset
             permuted_data[[response]] <- sample(dataset[[response]])
-            permuted_results <- cmanhattan(permuted_data, formula, plot = FALSE)
+            permuted_results <- cbhattacharyya(permuted_data, formula, plot = FALSE)
             permuted_distances <- permuted_results$distances
             return(permuted_distances[i, j])
           })
@@ -136,7 +154,7 @@ pvaluescmanh <- function(dataset, formula, pvalue.method = "chisq", num.permutat
             # Extract a sample with repetition 
             bootstrap_sample <- sample(nrow(dataset), replace = TRUE)
             bootstrap_data <- dataset[bootstrap_sample, ]
-            bootstrap_results <- cmanhattan(bootstrap_data, formula, plot = FALSE)
+            bootstrap_results <- cbhattacharyya(bootstrap_data, formula, plot = FALSE)
             bootstrap_distance <- bootstrap_results$distances[i, j]
             return(bootstrap_distance)
           })
@@ -166,13 +184,18 @@ pvaluescmanh <- function(dataset, formula, pvalue.method = "chisq", num.permutat
   return(p_values)
 }
 
+
+
+
+
+
 distances <- params$distances  # Replace with your actual distances data
 p_values <- params$p_values    # Replace with your actual p_values data
 
 
 
 if (!is.null(distances) && !all(is.na(distances))) {
-  knitr::kable(distances, caption = "Manhattan Distances")
+  knitr::kable(distances, caption = "Bhattacharyya Distances")
 } else {
   print("No distances available")
 }
@@ -190,7 +213,7 @@ if (!is.null(p_values) && !all(is.na(p_values))) {
 }
 
 if (!is.null(distances) && !all(is.na(distances))) {
-  plot_manhattan_distances(distances, "Manhattan Distance Between Groups")
+  plot_bhattacharyya_distances(distances, "Bhattacharyya Distance Between Groups")
 } else {
   print("No distances available for plotting")
 }

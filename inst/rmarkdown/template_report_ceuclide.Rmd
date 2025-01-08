@@ -30,26 +30,19 @@ ceuclide <- function(dataset, formula, plot = TRUE, plot_title = "Euclidean Dist
     return(df)
   })
   
-  # Replace missing values with arithmetic mean in each dataframe into the list 
+  # Replace missing values with the multiple imputation in each dataframe into the list 
   groups <- lapply(groups, impute_with_multiple_imputation)
   
   # Obtain the number of groups
   n <- length(groups)
   
-  # Precalculate means and covariances
+  # Precalculate means 
   means <- lapply(groups, colMeans)
-  covariances <- lapply(groups, function(df) {
-    cov_matrix <- cov(df)
-    n <- nrow(cov_matrix)
-    reg <- 0.01  # Regularization value
-    cov_matrix <- cov_matrix + diag(reg, nrow = n)
-    return(cov_matrix)
-  })
   
   # Create a empty matrix to store distances
   distances <- matrix(0, nrow = n, ncol = n)
   
-  # Calculate Euclidean distance between each couple of groups
+  # Calculate Euclidean distance between each pair of groups
   for (i in 1:n) {
     mean_i <- means[[i]] # Precalculated mean of group i
     for (j in 1:n) {
@@ -68,7 +61,7 @@ ceuclide <- function(dataset, formula, plot = TRUE, plot_title = "Euclidean Dist
   return(list(distances = distances))
 }
 
-# Auxiliary function to impute missing values with the mean 
+# Auxiliary function to impute missing values with the multiple imputation 
 impute_with_multiple_imputation <- function(df, m = 5, method = "cart") {
   # Multiple imputation using mice
   imp <- mice(df, m = m, method = method)
