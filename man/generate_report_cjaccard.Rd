@@ -2,38 +2,46 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{generate_report_cjaccard}
 \alias{generate_report_cjaccard}
-\title{Generate a Microsoft Word document about the Jaccard distance matrix and the p-values matrix with corresponding plots.}
+\title{Generate a Microsoft Word document about the Jaccard distances matrix or matrices (two or more) and the p-values matrix or matrices (two or more).}
 \usage{
 generate_report_cjaccard(
   dataset,
   formula,
-  pvalue.method = "chisq",
-  num.permutations = 10,
-  num.bootstraps = 10
+  pvalue.method = "permutation",
+  seed = NULL,
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate the Jaccard distance matrix and the p_values matrix.}
+\item{formula}{A variable or variables (two or more) with factors which you want to calculate the Jaccard distances matrix or matrices and the p_values matrix or matrices.}
 
-\item{pvalue.method}{A p_value method used to calculate the matrix, the default value is "chisq". Other methods are "permutation" and "bootstrap".}
+\item{pvalue.method}{A p_value method used to calculate the matrix, the default value is "permutation". Another method is "bootstrap".}
 
-\item{num.permutations}{Number of permutation to specify if you select "permutation" in "pvalue.method". The default value is 100.}
+\item{seed}{Optionally, set a seed for "bootstrap" or "permutation".}
 
-\item{num.bootstraps}{Number of bootstrap to specify if you select "bootstrap" in "p_value method". The default value is 10.}
+\item{min_group_size}{Minimum group size to maintain. The default value is 3,therefore groups, inside variables, with less than 3 observations will be discarded.}
 }
 \value{
-A Microsoft Word document about the Jaccard distance matrix and the p_values matrix.
+A Microsoft Word document about the Jaccard distance matrix or matrices and the p_values matrix or matrices.
 }
 \description{
-This function takes a dataframe, a factor and returns a Microsoft Word document about the Jaccard distance matrix and the p-values matrix with corresponding plots.
+This function takes a dataframe, a factor and returns a Microsoft Word document about the Jaccard distances matrix or matrices and the p-values matrix or matrices.
 }
 \examples{
+# Example with iris dataset
+data(iris)
+
 # Generate a report about "Species" factor in iris dataset
-generate_report_cjaccard(iris, ~Species)
+generate_report_cjaccard(iris, ~Species,
+pvalue.method = "permutation")
+
+# Example with mtcars dataset
+data(mtcars)
 
 # Generate a report about "am" factor in mtcars dataset
-generate_report_cjaccard(mtcars, ~am)
+generate_report_cjaccard(mtcars, ~am,
+pvalue.method = "bootstrap", seed = 223)
 
 }

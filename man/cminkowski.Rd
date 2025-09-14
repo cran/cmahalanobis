@@ -2,44 +2,56 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{cminkowski}
 \alias{cminkowski}
-\title{Calculate the Minkowski distance of a factor in a dataframe.}
+\title{Calculate the Minkowski distances for each pair of factors or for the index.}
 \usage{
 cminkowski(
   dataset,
   formula,
   p = 3,
   plot = TRUE,
-  plot_title = "Minkowski Distance Between Groups"
+  plot_title = "Minkowski Distance Between Groups",
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{The factor which you want to calculate the Minkowski distances matrix.}
+\item{formula}{The index of the dataframe, otherwise a variable or variables (two or more) with factors which you want to calculate the Minkowski distances matrix or matrices (two or more).}
 
-\item{p}{Order of the Minkowski distance}
+\item{p}{Order of the Minkowski distance.}
 
-\item{plot}{If TRUE, shows a plot of the Minkowski distances matrix.}
+\item{plot}{Logical, if TRUE, a plot or plots (two or more) of the Minkowski distances matrix or matrices about factors (two or more) are displayed.}
 
-\item{plot_title}{The title of the plot.}
+\item{plot_title}{If plot is TRUE, the title to be used for plot or plots about factors. The default value is TRUE.}
+
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded. For "index", this value is always 1.}
 }
 \value{
-The matrix containing distances.
+According to the option chosen in formula, with "index" the Minkowski distances matrix will be printed; instead, by specifying variables, the Minkowski distances matrix or matrices (two or more) between each pair of groups and, optionally, the plot or plots (two or more) will be printed.
 }
 \description{
-This function takes a dataframe and a factor in input, and returns a matrix with the Minkowski distances about it.
+This function takes a dataframe and a variable or variables (two or more) in input, and returns a matrix or matrices (two or more) with the Minkowski distances about the factors inside them. You can also select "index" to calculate the Minkowski distances between each row.
 }
-\details{
-Calculate Minkowski distance
+\note{
+When p < 1, the Minkowski distance is a "dissimilarity" measure. When p >= 1, 
+the triangle inequality property is satisfied and we say "Minkowski distance". If "index" is selected with variables, only distances between rows are calculated. Therefore, this snippet: "cminkowski(mtcars, ~am + carb + index)" will print distances only considering "index". Rows with NA values are omitted.
 }
 \examples{
-
 # Example with iris dataset
 
-cminkowski(iris, ~Species, p = 3, plot = TRUE, plot_title = "Minkowski Distance Between Groups")
+data(iris)
+
+cminkowski(iris, ~Species, p = 3, plot = TRUE, 
+plot_title = "Minkowski Distance Between Groups")
 
 # Example with mtcars dataset
 
-cminkowski(mtcars, ~am, p = 3, plot = TRUE, plot_title = "Minkowski Distance Between Groups")
+data(mtcars)
+
+cminkowski(mtcars, ~am, p = 3, plot = TRUE, 
+plot_title = "Minkowski Distance Between Groups")
+
+# Calculate the Minkowski distance for 32 car models in "mtcars" dataset
+res <- cminkowski(mtcars, ~index, p = 2, plot = TRUE)
 
 }

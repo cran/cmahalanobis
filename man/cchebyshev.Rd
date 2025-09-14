@@ -2,38 +2,52 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{cchebyshev}
 \alias{cchebyshev}
-\title{Calculate the p_values matrix for each species, using Chebyshev distance as a base.}
+\title{Calculate the Chebyshev distances for each pair of factors or for the index.}
 \usage{
 cchebyshev(
   dataset,
   formula,
   plot = TRUE,
-  plot_title = "Chebyshev Distance Between Groups"
+  plot_title = "Chebyshev Distance Between Groups",
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate Chebyshev distance.}
+\item{formula}{The index of the dataframe, otherwise a variable or variables (two or more) with factors which you want to calculate the Chebyshev distances matrix or matrices (two or more).}
 
-\item{plot}{If TRUE, displays a plot of distances.}
+\item{plot}{Logical, if TRUE, a plot or plots (two or more) of the Chebyshev distances matrix or matrices about factors (two or more) are displayed.}
 
-\item{plot_title}{The title of plot.}
+\item{plot_title}{If plot is TRUE, the title to be used for plot or plots about factors. The default value is TRUE.}
+
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded. For "index", this value is always 1.}
 }
 \value{
-A matrix containing distances and, optionally, the plot.
+According to the option chosen in formula, with "index" the Chebyshev distances matrix will be printed; instead, by specifying variables, the Chebyshev distances matrix or matrices (two or more) between each pair of groups and, optionally, the plot or plots (two or more) will be printed.
 }
 \description{
-This function takes a dataset, a factor, a p_value method, number of bootstraps and permutation when necessary, and returns a p_values matrix between each pair of species and a plot if the user select TRUE using the Chebyshev distance for the distances calculation.
+This function takes a dataframe and a variable or variables (two or more) in input, and returns a matrix or matrices (two or more) with the Chebyshev distances about the factors inside them. You can also select "index" to calculate the Chebyshev distances between each row.
+}
+\note{
+If "index" is selected with variables, only distances between rows are calculated. Therefore, this snippet: "cchebyshev(mtcars, ~am + carb + index)" will print distances only considering "index". Rows with NA values are omitted.
 }
 \examples{
 # Example with iris dataset
 
-cchebyshev(iris, ~Species, plot = TRUE, plot_title = "Chebyshev Distance Between Groups")
+data(iris)
+
+cchebyshev(iris, ~Species, plot = TRUE, 
+plot_title = "Chebyshev Distance Between Groups")
 
 # Example with mtcars dataset
 
-cchebyshev(mtcars, ~am, plot = TRUE, plot_title = "Chebyshev Distance Between Groups")
+data(mtcars)
 
+cchebyshev(mtcars, ~am, plot = TRUE, 
+plot_title = "Chebyshev Distance Between Groups")
+
+# Calculate the Chebyshev distance for 32 car models in "mtcars" dataset
+res <- cchebyshev(mtcars, ~index)
 
 }

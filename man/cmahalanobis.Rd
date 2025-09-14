@@ -2,42 +2,57 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{cmahalanobis}
 \alias{cmahalanobis}
-\title{Calculate the Mahalanobis distance for each species.}
+\title{Calculate the Mahalanobis distances for each pair of factors or for the index.}
 \usage{
 cmahalanobis(
   dataset,
   formula,
   plot = TRUE,
-  plot_title = "Mahalanobis Distance Between Groups"
+  plot_title = "Mahalanobis Distance Between Groups",
+  min_group_size = 3,
+  pvalues_chisq = FALSE
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate the Mahalanobis distances matrix.}
+\item{formula}{The index of the dataframe, otherwise a variable or variables (two or more) with factors which you want to calculate the Mahalanobis distances matrix or matrices (two or more).}
 
-\item{plot}{Logical, if TRUE, a plot of Mahalanobis distances matrix is displayed.}
+\item{plot}{Logical, if TRUE, a plot or plots (two or more) of the Mahalanobis distances matrix or matrices about factors (two or more) are displayed.}
 
-\item{plot_title}{The title to be used for the plot if plot is TRUE.}
+\item{plot_title}{If plot is TRUE, the title to be used for plot or plots about factors. The default value is TRUE.}
+
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore factors, inside variables, with less than 3 observations will be discarded. For "index", this value is always 1.}
+
+\item{pvalues_chisq}{If TRUE, print the result of the chi-squared test on squared distances. The distances with "pvalues_chisq = FALSE" are not squared; instead, with "pvalues_chisq = TRUE", the squared Mahalanobis distances with corresponding p_values will be printed. Default is FALSE.}
 }
 \value{
-A matrix containing Mahalanobis distances between each pair of groups and the plot.
+According to the option chosen in formula and in pvalues_chisq, with "index" and "pvalues_chisq = TRUE" the squared Mahalanobis distance matrix will be printed with corresponding pvalues; instead, with "index" and "pvalues_chisq = FALSE", only the Mahalanobis distances (not squared) will be printed. By specifying variables, the Mahalanobis distances matrix or matrices (two or more) between each pair of factors and, optionally, the plot or plots (two or more) will be printed.
 }
 \description{
-This function takes a dataframe and a factor in input, and returns a matrix with the Mahalanobis distances about it.
+This function takes a dataframe and a variable or variables (two or more) in input, and returns a matrix or matrices (two or more) with the Mahalanobis distances about each pair of factors inside them. You can also select "index" to calculate the Mahalanobis distances between each row.
+}
+\note{
+If "index" is selected with variables, only distances between rows are calculated. Therefore, this snippet: "cmahalanobis(mtcars, ~am + carb + index)" will print distances and plot only considering "index". Rows with NA values are omitted.
 }
 \examples{
 # Example with the iris dataset
 
 data(iris)
 
-# Calculate the Mahalanobis distance with the cmahalanobis function
-cmahalanobis(iris, ~Species, plot = TRUE, plot_title = "Mahalanobis Distance Between Groups")
+# Calculate the Mahalanobis distance for "Species" groups in "iris" dataset
+cmahalanobis(iris, ~Species, plot = TRUE, 
+plot_title = "Mahalanobis Distance Between Groups", min_group_size = 3)
 
 # Example with the mtcars dataset
 data(mtcars)
 
-# Calculate the Mahalanobis distance with the cmahalanobis function
-cmahalanobis(mtcars, ~am, plot = TRUE, plot_title = "Mahalanobis Distance Between Groups")
+# Calculate the Mahalanobis distance for two factors in "mtcars" dataset
+cmahalanobis(mtcars, ~am + vs, 
+plot = TRUE, plot_title = "Mahalanobis Distance Between Groups", 
+min_group_size = 2, pvalues_chisq = TRUE)
+
+# Calculate the Mahalanobis distance for "index" in mtcars
+cmahalanobis(mtcars, ~index, pvalues_chisq = TRUE) 
 
 }

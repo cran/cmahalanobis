@@ -2,36 +2,51 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{cbraycurtis}
 \alias{cbraycurtis}
-\title{Calculate the Bray-Curtis distance for each species.}
+\title{Calculate the Bray-Curtis dissimilarities for each pair of factors or for the index.}
 \usage{
 cbraycurtis(
   dataset,
   formula,
   plot = TRUE,
-  plot_title = "Bray-Curtis Distance Between Groups"
+  plot_title = "Bray-Curtis Dissimilarity Between Groups",
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate the Bray-Curtis distances matrix.}
+\item{formula}{The index of the dataframe, otherwise a variable or variables (two or more) with factors which you want to calculate the Bray-Curtis dissimilarities matrix or matrices (two or more).}
 
-\item{plot}{Logical, if TRUE, a plot of Bray-Curtis distances matrix is displayed.}
+\item{plot}{Logical, if TRUE, a plot or plots (two or more) of the Bray-Curtis dissimilarities matrix or matrices about factors (two or more) are displayed.}
 
-\item{plot_title}{The title to be used for the plot if plot is TRUE.}
+\item{plot_title}{If plot is TRUE, the title to be used for plot or plots about factors. The default value is TRUE.}
+
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded. For "index", this value is always 1.}
 }
 \value{
-A matrix containing Bray-Curtis distances between each pair of groups and the plot.
+According to the option chosen in formula, with "index" the Bray-Curtis dissimilarities matrix will be printed; instead, by specifying variables, the Bray-Curtis dissimilarities matrix or matrices (two or more) between each pair of factors and, optionally, the plot or plots (two or more) will be printed.
 }
 \description{
-This function takes a dataframe and a factor in input, and returns a matrix with the Bray-Curtis distances about it.
+This function takes a dataframe and a variable or variables (two or more) in input, and returns a matrix or matrices (two or more) with the Bray-Curtis dissimilarities about the factors inside them. You can also select "index" to calculate the Bray-Curtis dissimilarities between each row.
+}
+\note{
+If "index" is selected with variables, only dissimilarities between rows are calculated. Therefore, this snippet: "cbraycurtis(mtcars, ~am + carb + index)" will print dissimilarities only considering "index". Rows with NA values are omitted.
 }
 \examples{
 # Example with the iris dataset
+data(iris)
 
-cbraycurtis(iris, ~Species, plot = TRUE, plot_title = "Bray-Curtis Distance Between Groups")
+cbraycurtis(iris, ~Species, plot = TRUE,
+plot_title = "Bray-Curtis Dissimilarity Between Groups")
+
+# Example with mtcars dataset
+data(mtcars)
 
 # Example with the mtcars dataset
-cbraycurtis(mtcars, ~am, plot = TRUE, plot_title = "Bray-Curtis Distance Between Groups")
+cbraycurtis(mtcars, ~am, 
+plot = TRUE, plot_title = "Bray-Curtis Dissimilarity Between Groups")
+
+# Calculate the Bray-Curtis dissimilarity for 32 car models in "mtcars" dataset
+res <- cbraycurtis(mtcars, ~index)
 
 }

@@ -2,41 +2,52 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{ccosine}
 \alias{ccosine}
-\title{Calculate the Cosine distance of a factor in a dataframe.}
+\title{Calculate the Cosine dissimilarities for each pair of factors or for the index.}
 \usage{
 ccosine(
   dataset,
   formula,
   plot = TRUE,
-  plot_title = "Cosine Distance Between Groups"
+  plot_title = "Cosine Dissimilarity Between Groups",
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{The factor which you want to calculate the Cosine distances matrix.}
+\item{formula}{The index of the dataframe, otherwise a variable or variables (two or more) with factors which you want to calculate the Cosine dissimilarities matrix or matrices (two or more).}
 
-\item{plot}{If TRUE, shows a plot of the Cosine distances matrix.}
+\item{plot}{Logical, if TRUE, a plot or plots (two or more) of the Cosine dissimilarities matrix or matrices about factors (two or more) are displayed.}
 
-\item{plot_title}{The title of the plot.}
+\item{plot_title}{If plot is TRUE, the title to be used for plot or plots about factors. The default value is TRUE.}
+
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded. For "index", this value is always 1.}
 }
 \value{
-The matrix containing distances.
+According to the option chosen in formula, with "index" the Cosine dissimilarities matrix will be printed; instead, by specifying variables, the Cosine dissimilarities matrix or matrices (two or more) between each pair of groups and, optionally, the plot or plots (two or more) will be printed.
 }
 \description{
-This function takes a dataframe and a factor in input, and returns a matrix with the Cosine distances about it.
+This function takes a dataframe and a variable or variables (two or more) in input, and returns a matrix or matrices (two or more) with the Cosine dissimilarities about the factors inside them. You can also select "index" to calculate the Cosine dissimilarities between each row.
 }
-\details{
-Calculate Cosine distance
+\note{
+If "index" is selected with variables, only dissimilarities between rows are calculated. Therefore, this snippet: "ccosine(mtcars, ~am + carb + index)" will print dissimilarities only considering "index". Rows with NA values are omitted.
 }
 \examples{
-
 # Example with iris dataset
 
-ccosine(iris, ~Species, plot = TRUE, plot_title = "Cosine Distance Between Groups")
+data(iris)
+
+ccosine(iris, ~Species, plot = TRUE, 
+plot_title = "Cosine Dissimilarity Between Groups")
 
 # Example with mtcars dataset
 
-ccosine(mtcars, ~am, plot = TRUE, plot_title = "Cosine Distance Between Groups")
+data(mtcars)
+
+ccosine(mtcars, ~am, plot = TRUE, 
+plot_title = "Cosine Dissimilarity Between Groups")
+
+# Calculate the Cosine dissimilarity for 32 car models in "mtcars" dataset
+res <- ccosine(mtcars, ~index)
 
 }

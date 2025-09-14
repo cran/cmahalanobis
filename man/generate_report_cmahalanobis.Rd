@@ -2,38 +2,50 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{generate_report_cmahalanobis}
 \alias{generate_report_cmahalanobis}
-\title{Generate a Microsoft Word document about Mahalanobis distance matrix and p-values matrix with corresponding plots.}
+\title{Generate a Microsoft Word document about the Mahalanobis distances matrix or matrices and the p-values matrix or matrices.}
 \usage{
 generate_report_cmahalanobis(
   dataset,
   formula,
-  pvalue.method = "chisq",
-  num.permutations = 10,
-  num.bootstraps = 10
+  pvalue.method = "permutation",
+  seed = NULL,
+  min_group_size = 3,
+  pvalues_chisq = FALSE
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate Mahalanobis distances matrix and p_values matrix.}
+\item{formula}{A variable or variables (two or more) with factors which you want to calculate the Mahalanobis distances matrix or matrices (two or more) and the p_values matrix or matrices (two or more).}
 
-\item{pvalue.method}{A method with which you want to calculate pvalue matrix.The default method is "chisq". Other methods are "permutation" and "bootstrap".}
+\item{pvalue.method}{A p_value method used to calculate the matrix or matrices (two or more), the default value is "permutation". Another method is "bootstrap".}
 
-\item{num.permutations}{A number of permutations to define if you choose "permutation".}
+\item{seed}{Optionally, set a seed for "bootstrap" or "permutation".}
 
-\item{num.bootstraps}{A number of bootstrap to define if you choose "bootstrap".}
+\item{min_group_size}{Minimum group size to maintain. The default value is 3,therefore groups, inside variables, with less than 3 observations will be discarded.}
+
+\item{pvalues_chisq}{If TRUE, print the result of the chi-squared test on squared distances. The resulting distances with "pvalues_chisq = FALSE" are not squared; instead, with "pvalues_chisq = TRUE", the squared Mahalanobis distance matrix with corresponding p_values will be printed. Default is FALSE.}
 }
 \value{
-A Microsoft Word document about Mahalanobis distances matrix and p_values matrix.
+A Microsoft Word document about the Mahalanobis distances matrix or matrices (two or more) and the p_values matrix or matrices (two or more).
 }
 \description{
-This function takes a dataframe, a factor and returns a Microsoft Word document about Mahalanobis distance matrix and p-values matrix with corresponding plots.
+This function takes a dataframe, a factor or factors (two or more) and returns a Microsoft Word document about the Mahalanobis distances matrix or matrices (two or more) and the p-values matrix or matrices.
 }
 \examples{
-# Generate a report about "Species" factor in iris dataset
-generate_report_cmahalanobis(iris, ~Species)
+# Example with iris dataset
+data(iris)
 
-# Generate a report about "am" factor in mtcars dataset
-generate_report_cmahalanobis(mtcars, ~am)
+# Generate a report about the "Species" 
+# factor in the iris dataset using the "permutation" method.
+generate_report_cmahalanobis(iris, ~Species, min_group_size = 3)
 
+# Example with mtcars dataset
+data(mtcars)
+
+# Generate a report about the "am" and "vs" in mtcars using "bootstrap" method.
+generate_report_cmahalanobis(mtcars, ~am + vs,
+pvalue.method = "bootstrap",
+seed = 100, min_group_size = 2)
+ 
 }

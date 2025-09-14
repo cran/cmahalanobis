@@ -2,44 +2,58 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{pvaluescmink}
 \alias{pvaluescmink}
-\title{Calculate the p_values matrix for each species, using Minkowski distance as a base.}
+\title{Calculate the p_values matrix or matrices (two or more) for each factor inside variable or variables (two or more), using Minkowski dissimilarity/distance as a base.}
 \usage{
 pvaluescmink(
   dataset,
   formula,
+  pvalue.method = "permutation",
   p = 3,
-  pvalue.method = "chisq",
-  num.permutations = 100,
-  num.bootstraps = 10,
-  plot = TRUE
+  plot = TRUE,
+  seed = NULL,
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate Minkowski distance.}
+\item{formula}{A variable or variables (two or more) with factors which you want to calculate the Minkowski dissimilarities/distances matrix or matrices (two or more).}
 
-\item{p}{Order of the Minkowski distance}
+\item{pvalue.method}{A p_value method used to calculate the matrix or matrices (two or more), the default value is "permutation". Another method is "bootstrap".}
 
-\item{pvalue.method}{A p_value method used to calculate the matrix, the default value is "chisq". Other methods are "permutation" and "bootstrap".}
+\item{p}{Order of the Minkowski dissimilarities/distances. The default value is 3.}
 
-\item{num.permutations}{Number of permutation to specify if you select "permutation" in "pvalue.method". The default value is 100.}
+\item{plot}{if TRUE, plot the p_values heatmap or heatmaps (two or more). The default value is TRUE.}
 
-\item{num.bootstraps}{Number of bootstrap to specify if you select "bootstrap" in "p_value method". The default value is 10.}
+\item{seed}{Optionally, set a seed for "bootstrap" and "permutation".}
 
-\item{plot}{if TRUE, plot the p_values heatmap. The default value is TRUE.}
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded.}
 }
 \value{
 A list containing a matrix of p_values and, optionally, the plot.
 }
 \description{
-This function takes a dataset, a factor, a p_value method, number of bootstraps and permutation when necessary, and returns a p_values matrix between each pair of species and a plot if the user select TRUE using Minkowski distance for the distances calculation.
+Using the Minkowski dissimilarity/distance for the dissimilarities/distances calculation, this function takes a dataframe, a variable or variables (two or more), a p_value method such as "bootstrap" and "permutation" and returns the p_values matrix or matrices (two or more) between each pair of factors and a plot or plots (two or more) if the user select TRUE or leaves the parameter without argument.
+}
+\note{
+When p < 1, the Minkowski distance is a "dissimilarity" measure. When p >= 1, 
+the triangle inequality property is satisfied and we say "Minkowski distance".
 }
 \examples{
+# Example with iris dataset
+
+# data(iris)
+
 # Calculate p_values of "Species" variable in iris dataset
-pvaluescmink(iris,~Species, p = 3, pvalue.method = "chisq",
-  num.permutations = 100, num.bootstraps = 10)
+
+pvaluescmink(iris,~Species, p = 3, pvalue.method = "permutation")
+
+# Example with mtcars dataset
+data(mtcars)
+
 # Calculate p_values of "am" variable in mtcars dataset
-pvaluescmink(mtcars,~am, p = 3, pvalue.method = "chisq", 
-  num.permutations = 100, num.bootstraps = 10)
+
+pvaluescmink(mtcars,~am, p = 3, 
+pvalue.method = "permutation", seed = 100)
+
 }

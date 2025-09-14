@@ -2,36 +2,51 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{chellinger}
 \alias{chellinger}
-\title{Calculate the Hellinger distance for each species.}
+\title{Calculate the Hellinger distances for each pair of factors or for the index.}
 \usage{
 chellinger(
   dataset,
   formula,
   plot = TRUE,
-  plot_title = "Hellinger Distance Between Groups"
+  plot_title = "Hellinger Distance Between Groups",
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate the Hellinger distances matrix.}
+\item{formula}{The index of the dataframe, otherwise a variable or variables (two or more) with factors which you want to calculate the Hellinger distances matrix or matrices (two or more).}
 
-\item{plot}{Logical, if TRUE, a plot of Hellinger distances matrix is displayed.}
+\item{plot}{Logical, if TRUE, a plot or plots (two or more) of the Hellinger distances matrix or matrices about factors (two or more) are displayed.}
 
-\item{plot_title}{The title to be used for the plot if plot is TRUE.}
+\item{plot_title}{If plot is TRUE, the title to be used for plot or plots about factors. The default value is TRUE.}
+
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded. For "index", this value is always 1.}
 }
 \value{
-A matrix containing Hellinger distances between each pair of groups and the plot.
+According to the option chosen in formula, with "index" the Hellinger distances matrix will be printed; instead, by specifying variables, the Hellinger distances matrix or matrices (two or more) between each pair of groups and, optionally, the plot or plots (two or more) will be printed.
 }
 \description{
-This function takes a dataframe and a factor in input, and returns a matrix with the Hellinger distances about it.
+This function takes a dataframe and a variable or variables (two or more) in input, and returns a matrix or matrices (two or more) with the Hellinger distances about the factors inside them. You can also select "index" to calculate the Hellinger distances between each row.
+}
+\note{
+If "index" is selected with variables, only distances between rows are calculated. Therefore, this snippet: "chellinger(mtcars, ~am + carb + index)" will print the distances only considering "index". Rows with NA values are omitted.
 }
 \examples{
 # Example with the iris dataset
 
-chellinger(iris, ~Species, plot = TRUE, plot_title = "Hellinger Distance Between Groups")
+data(iris)
+
+chellinger(iris, ~Species, plot = TRUE,
+plot_title = "Hellinger Distance Between Groups")
 
 # Example with the mtcars dataset
-chellinger(mtcars, ~am, plot = TRUE, plot_title = "Hellinger Distance Between Groups")
+
+data(mtcars)
+
+chellinger(mtcars, ~am, plot = TRUE,
+plot_title = "Hellinger Distance Between Groups")
+
+res <- chellinger(mtcars, ~index)
 
 }

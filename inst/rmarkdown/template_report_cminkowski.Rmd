@@ -11,210 +11,337 @@ params:
 
 knitr::opts_chunk$set(echo = FALSE)
 
-cminkowski <- function(dataset, formula, p = 3, plot = TRUE, plot_title = "Minkowski Distance Between Groups") {
-  # Verify that the input is a data frame
-  if (!is.data.frame(dataset)) {
-    stop("The input must be a dataframe")
-  }
+cminkowski <- function(dataset, formula, p = 3, plot = TRUE, 
+                       plot_title = "Minkowski Distance Between Groups", 
+                       min_group_size = 3) {
   
-  # Extract the response and predictor variables from the formula
-  response <- all.vars(formula)[1]
-  predictors <- all.vars(formula)[-1]
+  if (!is.data.frame(dataset))
+    stop("The input must be a data frame.")
   
-  # Split the data into groups based on the response variable
-  groups <- split(dataset, dataset[[response]])
+  grouping_vars <- all.vars(formula)
+  if (length(grouping_vars) == 0)
+    stop("At least one grouping variable must be specified in the formula.")
+  if (!all(grouping_vars %in% names(dataset)) && !("index" %in% grouping_vars))
+    stop("Some grouping variables are not present in the dataset.")
   
-  # Select only numeric variables in each group
-  groups <- lapply(groups, function(df) {
-    df <- df[, sapply(df, is.numeric)]  # Select only numeric columns
-    return(df)
-  })
-  
-  # Replace missing values with the multiple imputation in each dataframe into the list 
-  groups <- lapply(groups, impute_with_multiple_imputation)
-  
-  # Obtain the number of groups
-  n <- length(groups)
-  
-  # Precalculate means
-  means <- lapply(groups, colMeans)
-  
-  # Create an empty matrix to store distances
-  distances <- matrix(0, nrow = n, ncol = n)
-  
-  # Calculate Minkowski distance between each couple of groups
-  for (i in 1:n) {
-    mean_i <- means[[i]] # Precalculated mean of group i
-    for (j in 1:n) {
-      if (i != j) {
-        distances[i, j] <- mean(apply(groups[[j]], 1, function(row) {
-          sum(abs(row - mean_i)^p)^(1/p)
-        }))
+  # If the user specified "~index", use the individual mode.
+  if ("index" %in% grouping_vars) {
+    if (!("index" %in% names(dataset))) {
+      message("Formula '~index' was used. In 'index' mode, 'min_group_size' is always 1.")
+      idx <- rownames(dataset)
+      is_default_rownames <- is.null(idx) || all(idx == as.character(seq_len(nrow(dataset))))
+      if (is_default_rownames) {
+        message(" -> Using sequential numbers (1, 2, 3, ...) for the index.")
+        dataset$index <- seq_len(nrow(dataset))
+      } else {
+        message(" -> Using dataset's rownames for the index.")
+        dataset$index <- idx
       }
     }
+    
+    # In this case, grouping is performed for each row (i.e., each observation is its own group).
+    # Predictors are all variables except for "index".
+    predictors <- setdiff(names(dataset), "index")
+    
+    ## Perform imputation and one-hot encoding (if necessary)
+    dataset_imputed <- na.omit(dataset)
+    predictors_data <- model.matrix(~ . - 1, data = dataset_imputed[, predictors, drop = FALSE])
+    predictors_data <- as.data.frame(predictors_data)
+    variances <-  sapply(predictors_data, var)
+    predictors_data <- predictors_data[, variances > 1e-9, drop = FALSE]
+    predictors <- colnames(predictors_data)
+    
+    # Convert predictors to a matrix to speed up calculations and standardize
+    predictors_mat <- as.matrix(predictors_data)
+    predictor_means <- colMeans2(predictors_mat)
+    predictor_sds <-  apply(predictors_mat, 2, sd)
+    predictor_sds[predictor_sds < 1e-9] <- 1 
+    X <- scale(predictors_mat, center = predictor_means, scale = predictor_sds)
+    
+    # Compute the Minkowski dissimilarity/distance matrix based on standard Minkowski distance
+    D <- as.matrix(round(dist(X, method = "minkowski", p = p), digits = 2))
+    
+    return(list(index = list(distances = D)))
   }
   
-  # If plot is TRUE, call the function "plot_minkowski_distances" and print the plot
-  if (plot) {
-    print(plot_minkowski_distances(distances, plot_title))
+  # Assume grouping is not "index"
+  predictors <- setdiff(names(dataset), grouping_vars)
+  
+  if (length(predictors) != 0) {
+    
+    dataset_imputed <- na.omit(dataset)
+    predictors_data <- model.matrix(~ . - 1, data = dataset_imputed[, predictors, drop = FALSE])
+    predictors_data <- as.data.frame(predictors_data)
+    variances <-  sapply(predictors_data, var)
+    predictors_data <- predictors_data[, variances > 1e-9, drop = FALSE]
+    predictors <- colnames(predictors_data)
+    
+    dataset_prepared <- cbind(dataset_imputed[grouping_vars], predictors_data)
+    
+    predictors_mat <- as.matrix(predictors_data)
+    predictor_means <- colMeans2(predictors_mat, na.rm = TRUE)
+    predictor_sds <-  apply(predictors_mat, 2, sd)
+    predictor_sds[predictor_sds < 1e-9] <- 1 
+    predictors_data_scaled <- scale(predictors_mat, center = predictor_means, scale = predictor_sds)
+    
+    dataset_prepared_scaled <- cbind(dataset_imputed[grouping_vars], as.data.frame(predictors_data_scaled))
+    
+    dt <- as.data.frame(dataset_prepared_scaled)
+  } else if (length(predictors) == 0) {
+    dataset_imputed <- na.omit(dataset)
+    dataset_prepared <- (dataset_imputed)
+    dt <- as.data.frame(dataset_prepared)
   }
   
-  # Return a list containing distances
-  return(list(distances = distances))
-}
-
-# Auxiliary function to replace missing values with the multiple imputation
-impute_with_multiple_imputation <- function(df, m = 5, method = "cart") {
-  # Multiple imputation using mice
-  imp <- mice(df, m = m, method = method)
-  imputedData <- complete(imp, action = 1)
-  return(imputedData)
-}
-
-# Auxiliary function to print the Minkowski distances plot
-plot_minkowski_distances <- function(distances, plot_title) {
-  requireNamespace("ggplot2")
-  requireNamespace("reshape2")
-  output_df <- as.data.frame(distances)
-  output_df$Species <- rownames(output_df)
+  result <- list()
+  plot_list <- list()
   
-  output_df_long <- reshape2::melt(output_df, id.vars = "Species")
-  colnames(output_df_long) <- c("Species", "Comparison", "Distance")
-  
-  ggplot2::ggplot(output_df_long, ggplot2::aes(x = Species, y = Distance, fill = Comparison)) +
-    ggplot2::geom_bar(stat = "identity", position = "dodge") +
-    ggplot2::labs(title = plot_title, x = "Species", y = "Distance", fill = "Comparison") +
-    ggplot2::theme_minimal()
-}
-
-plot_p_values <- function(p_values, plot_title = "p_values heatmap") {
- requireNamespace("ggplot2")
-  requireNamespace("reshape2")
-  output_df <- as.data.frame(p_values)
-  output_df$Species <- rownames(output_df)
-  
-  output_df_long <- reshape2::melt(output_df, id.vars = "Species")
-  colnames(output_df_long) <- c("Species", "Comparison", "Distance")
-  
-  ggplot2::ggplot(output_df_long, ggplot2::aes(x = Species, y = Distance, fill = Comparison)) +
-    ggplot2::geom_bar(stat = "identity", position = "dodge") +
-    ggplot2::labs(title = plot_title, x = "Species", y = "Distance", fill = "Comparison") +
-    ggplot2::theme_minimal()
-}
-
-
-
-
-pvaluescmink <- function(dataset, formula, p = 3, pvalue.method = "chisq", num.permutations = 100, num.bootstraps = 10, plot = TRUE) {
-  # Verify that input is a dataframe
-  if (!is.data.frame(dataset)) {
-    stop("dataset must be a dataframe")
-  }
-  
-  # Extract the response variable name by the formula
-  response <- all.vars(formula)[1]
-  
-  # Verify the presence of the response variable
-  if (!response %in% names(dataset)) {
-    stop(paste("The response variable", response, "isn't present"))
-  }
-  
-  # Calculate Minkowski distances using "cminkowski" function
-  cminkowski_results <- cminkowski(dataset, formula, p = p, plot = FALSE)
-  distances <- cminkowski_results$distances
-  
-  # Obtain the groups number
-  n <- nrow(distances)
-  
-  # Initialize p_value matrix
-  p_values <- matrix(NA, nrow = n, ncol = n)
-  
-  # Calculate p_values
-  for (i in 1:n) {
-    df <- ncol(dataset) - 1  # Degrees of freedom (adjusted for matrix covariance estimate)
-    for (j in 1:n) {
-      if (i != j) {
-        # Choose p_values method calculation based user inputs
-        if (pvalue.method == "chisq") {
-          p_values[i, j] <- pchisq(distances[i, j], df, lower.tail = FALSE, log.p = TRUE)
-        } else if (pvalue.method == "permutation") {
-          # Permutation test
-          observed_distance <- distances[i, j]
-          permutation_distances <- replicate(num.permutations, {
-            # Permute labels group and recalculate the distance
-            permuted_data <- dataset
-            permuted_data[[response]] <- sample(dataset[[response]])
-            permuted_results <- cminkowski(permuted_data, formula, p = p, plot = FALSE)
-            permuted_distances <- permuted_results$distances
-            return(permuted_distances[i, j])
-          })
-          p_values[i, j] <- mean(permutation_distances >= observed_distance)
-        } else if (pvalue.method == "bootstrap") {
-          # Bootstrap
-          observed_distance <- distances[i, j]
-          bootstrap_distances <- replicate(num.bootstraps, {
-            # Extract a sample with repetition 
-            bootstrap_sample <- sample(nrow(dataset), replace = TRUE)
-            bootstrap_data <- dataset[bootstrap_sample, ]
-            bootstrap_results <- cminkowski(bootstrap_data, formula, p = p, plot = FALSE)
-            bootstrap_distance <- bootstrap_results$distances[i, j]
-            return(bootstrap_distance)
-          })
-          p_values[i, j] <- mean(abs(bootstrap_distances) >= abs(observed_distance))
-        } else {
-          stop("p_values calculation method not supported. Use 'chisq', 'permutation' or 'bootstrap'.")
+  for (grouping_var in grouping_vars) {
+    groups <- split(dt, dt[[grouping_var]])
+    group_sizes <-  sapply(groups, nrow)
+    valid_groups <- groups[group_sizes >= min_group_size]
+    
+    if (length(valid_groups) < 2) {
+      warning(paste("Not enough valid groups for grouping variable:", grouping_var, "- skipping."))
+      next
+    }
+    
+    group_names <- names(valid_groups)
+    n <- length(valid_groups)
+    
+    if (length(predictors) != 0) {
+      means <-  lapply(valid_groups, function(dt_group) {
+        colMeans2(as.matrix(dt_group[, predictors]))
+      })
+    } else if (length(predictors) == 0) {
+      means <-  lapply(valid_groups, function(dt_group) {
+        colMeans2(as.matrix(dt_group))
+      })
+    }
+    
+    distances <- matrix(0, nrow = n, ncol = n)
+    rownames(distances) <- colnames(distances) <- group_names
+    # Calculate Minkowski dissimilarity/distance between each pair of groups.
+    for (i in 1:n) {
+      mean_i <- means[[i]]
+      for (j in 1:n) {
+        if (i != j) {
+          mean_j <- means[[j]]
+          # The Minkowski dissimilarity/distance
+          distances[i, j] <- round( sum2(abs(mean_i - mean_j)^(p)) ^(1/p), digits = 2)
+          distances[j, i] <- distances[i, j]  # Ensure symmetry
         }
       }
     }
-  }
-  
-  # Create heatmap if plot is TRUE
-  if (plot) {
-    requireNamespace("reshape2")
-    requireNamespace("ggplot2")
-    p_values_melt <- reshape2::melt(p_values, na.rm = TRUE)
-    colnames(p_values_melt) <- c("Var1", "Var2", "value")
     
-    print(ggplot2::ggplot(data = p_values_melt, ggplot2::aes(x = Var1, y = Var2, fill = value)) +
-            ggplot2::geom_tile() +
-            ggplot2::scale_fill_gradient(low = "white", high = "red") +
-            ggplot2::labs(title = "p_values heatmap", x = "", y = "", fill = "p_value") +
-            ggplot2::theme_minimal() +
-            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)))
+    if (p >= 1) {
+      result[[grouping_var]] <- list(distances = distances)
+    }
+    else if (p < 1) {
+      
+      result[[grouping_var]] <- list(distances = distances)
+    }
   }
-  
-  return(p_values)
+  return(result)
 }
 
+pvaluescmink <- function(dataset, formula, pvalue.method = "permutation", p = 3, plot = TRUE, seed = NULL, min_group_size = 3) {
+  
+  if (!is.data.frame(dataset)) {
+    stop("The input must be a data frame.")
+  }
+  
+  grouping_vars <- all.vars(formula)
+  if (length(grouping_vars) == 0) {
+    stop("At least one grouping variable must be specified in the formula.")
+  }
+  
+  if (!all(grouping_vars %in% names(dataset)) && !identical(grouping_vars, "index")) {
+    stop("Some grouping variables are not present in the dataset.")
+  }
+  
+  if ("index" %in% grouping_vars && pvalue.method == "bootstrap") {
+    stop("'bootstrap' method does not have sense with 'index'")
+  }
+  
+  if ("index" %in% grouping_vars && pvalue.method == "permutation") {
+    stop("'permutation' method does not have sense with 'index'")
+  }
+  
+  if ("index" %in% grouping_vars) {
+    if (!("index" %in% names(dataset))) {
+      message("Formula '~index' was used. In this mode, 'min_group_size' is always 1.")
+      idx <- rownames(dataset)
+      is_default_rownames <- is.null(idx) || all(idx == as.character(seq_len(nrow(dataset))))
+      if (is_default_rownames) {
+        message(" -> Using sequential numbers (1, 2, 3, ...) for the index.")
+        dataset$index <- seq_len(nrow(dataset))
+      } else {
+        message(" -> Using dataset's rownames for the index.")
+        dataset$index <- idx
+      }
+    }
+  }
+  
+  # Create lists to save the results (p-value matrices) and plots
+  result_list <- list()
+  plot_list <- list()
+  excluded_message <- list()
+  
+  # Iterate over each grouping variable
+  for (idx in seq_along(grouping_vars)) {
+    grouping_var <- grouping_vars[idx]
+    
+    # Calculate Minkowski distances/dissimilarities using cminkowski
+    minkowski_results <- cminkowski(dataset, as.formula(paste("~", grouping_var)), p = p,
+                                        plot = FALSE, min_group_size = min_group_size)
+    distances <- minkowski_results[[grouping_var]]$distances
+    
+    # Number of groups
+    n <- nrow(distances)
+    
+    # Initialize the p-values matrix
+    p_values <- matrix(NA, nrow = n, ncol = n)
+    rownames(p_values) <- colnames(p_values) <- rownames(distances)
+    
+    null_distances_list <- list() # Initialize a list to store distances
+    
+    if (!is.null(seed)) {
+      set.seed(seed)
+    }
+    
+    if (pvalue.method == "permutation") {
+      message(paste("Running permutations for", grouping_var, "..."))
+      
+      for (k in 1: nrow(dataset)) { # Loop for permutations
+        permuted_data <- dataset
+        permuted_data[[grouping_var]] <- sample(permuted_data[[grouping_var]], replace = FALSE)
+        
+        permuted_results <- cminkowski(permuted_data,
+                                         as.formula(paste("~", grouping_var)), p = p,
+                                         plot = FALSE,
+                                         min_group_size = min_group_size)
+        
+        if (!is.null(permuted_results) && !is.null(permuted_results[[grouping_var]])) {
+          null_distances_list[[k]] <- permuted_results[[grouping_var]]$distances
+        } else {
+          null_distances_list[[k]] <- NULL # Store NULL if calculation fails
+        }
+      }
+    } else if (pvalue.method == "bootstrap") {
+      message(paste("Running bootstrap samples for", grouping_var, "..."))
+      for (k in 1: nrow(dataset)) { # Loop for bootstraps
+        bootstrap_sample <- sample(nrow(dataset), replace = TRUE)
+        bootstrap_data <- dataset[bootstrap_sample, ] 
+        
+        bootstrap_results <- cminkowski(bootstrap_data,
+                                          as.formula(paste("~", grouping_var)), p = p,
+                                          plot = FALSE,
+                                          min_group_size = min_group_size)
+        
+        if (!is.null(bootstrap_results) && !is.null(bootstrap_results[[grouping_var]])) {
+          null_distances_list[[k]] <- bootstrap_results[[grouping_var]]$distances
+        } else {
+          null_distances_list[[k]] <- NULL
+        }
+      }
+    }
+    
+    # Now calculate p-values using the collected null distances
+    for (i in 1:n) {
+      for (j in i:n) {
+        if (i == j) next
+        
+        observed_distance <- distances[i, j]
+        
+        # Extract the vector of distances for the cell (i,j) from all saved matrices
+        replicated_distances <- sapply(null_distances_list, function(dist_matrix) {
+          if (!is.null(dist_matrix) && nrow(dist_matrix) >= i && ncol(dist_matrix) >= j && !is.na(dist_matrix[i, j])) {
+            return(dist_matrix[i, j])
+          } else {
+            return(NA)
+          }
+        })
+        
+        valid_distances <- replicated_distances[!is.na(replicated_distances)]
+        
+        if (length(valid_distances) == 0) {
+          p_values[i, j] <- NA
+        } else {
+          # Calculate the p-value as a proportion of replicated distances >= to that observed
+          p_values[i, j] <- round(mean2(valid_distances >= observed_distance, na.rm = TRUE), digits = 2)
+        }
+        
+        p_values[j, i] <- p_values[i, j] # Make the matrix symmetric
+      }
+    }
+    result_list[[grouping_var]] <- p_values
+    
+    excluded_groups <- minkowski_results[[grouping_var]]$excluded_groups
+    if (length(excluded_groups) > 0 && is.null(excluded_message[[grouping_var]])) {
+      excluded_message[[grouping_var]] <- paste("Grouping variable", grouping_var,
+                                                "- excluded groups due to insufficient size:",
+                                                paste(excluded_groups, collapse = ", "))
+      message(excluded_message[[grouping_var]])
+    }
+  }
+  return(result_list)
+}
+
+plot_distances <- function(distances) {
+  distances_melt <- reshape2::melt(distances, na.rm = TRUE)
+      colnames(distances_melt) <- c("Var1", "Var2", "value")
+      
+      q <- ggplot2::ggplot(data = distances_melt, ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+        ggplot2::geom_tile() +
+        ggplot2::scale_colour_brewer(palette = "Greens") +
+        ggplot2::geom_tile(color = "white", lwd = 1.5, linetype = 1) +
+        ggplot2::geom_text(aes(label = value), color = "white", size = 4) + 
+        ggplot2::labs(title = paste("Distances Heatmap"), x = "", y = "", fill = "p_value") +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+      
+    print(q)
+}
+
+
+plot_p_values <- function(p_values) {
+      p_values_melt <- reshape2::melt(p_values, na.rm = TRUE)
+      colnames(p_values_melt) <- c("Var1", "Var2", "value")
+      
+      p <- ggplot2::ggplot(data = p_values_melt, ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+        ggplot2::geom_tile() +
+        ggplot2::scale_colour_brewer(palette = "Greens") +
+        ggplot2::geom_tile(color = "white", lwd = 1.5, linetype = 1) +
+        ggplot2::geom_text(aes(label = value), color = "white", size = 4) + 
+        ggplot2::labs(title = paste("p-values heatmap"), x = "", y = "", fill = "p_value") +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+      
+    print(p)
+
+}
 
 distances <- params$distances  # Replace with your actual distances data
 p_values <- params$p_values    # Replace with your actual p_values data
 
-
-
 if (!is.null(distances) && !all(is.na(distances))) {
-  knitr::kable(distances, caption = "Minkowski Distances")
+  print(distances, caption = "Minkowski Distances")
 } else {
   print("No distances available")
 }
 
 if (!is.null(p_values) && !all(is.na(p_values))) {
-   knitr::kable(p_values, caption = "p_values")
+   print(p_values, caption = "p_values")
 } else {
   print("No p_values available")
 }
 
-if (!is.null(p_values) && !all(is.na(p_values))) {
-  plot_p_values(p_values, "P_Values")
-} else {
-  print("No p_values available")
+if (length(grouping_vars) == 1) {
+plot_distances(distances)
 }
 
-if (!is.null(distances) && !all(is.na(distances))) {
-  plot_minkowski_distances(distances, "Minkowski Distance Between Groups")
-} else {
-  print("No distances available for plotting")
+if (length(grouping_vars) == 1) {
+plot_p_values(p_values)
 }
-
-
 ```

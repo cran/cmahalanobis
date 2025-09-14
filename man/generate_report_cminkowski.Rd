@@ -2,41 +2,53 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{generate_report_cminkowski}
 \alias{generate_report_cminkowski}
-\title{Generate a Microsoft Word document about the Minkowski distance matrix and the p-values matrix with corresponding plots.}
+\title{Generate a Microsoft Word document about the Minkowski dissimilarities/distances matrix or matrices (two or more) and the p-values matrix or matrices (two or more).}
 \usage{
 generate_report_cminkowski(
   dataset,
   formula,
   p = 3,
-  pvalue.method = "chisq",
-  num.permutations = 10,
-  num.bootstraps = 10
+  pvalue.method = "permutation",
+  seed = NULL,
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate the Minkowski distance matrix and the p_values matrix.}
+\item{formula}{A variable or variables (two or more) with factors which you want to calculate the Minkowski dissimilarities/distances matrix or matrices (two or more) and the p_values matrix or matrices (two or more).}
 
-\item{p}{Order of the Minkowski distance}
+\item{p}{Order of the Minkowski dissimilarities/distances. The default value is 3.}
 
-\item{pvalue.method}{A p_value method used to calculate the matrix, the default value is "chisq". Other methods are "permutation" and "bootstrap".}
+\item{pvalue.method}{A p_value method used to calculate the matrix or matrices (two or more), the default value is "permutation". Another method is "bootstrap".}
 
-\item{num.permutations}{Number of permutation to specify if you select "permutation" in "pvalue.method". The default value is 100.}
+\item{seed}{Optionally, set a seed for "bootstrap" and "permutation".}
 
-\item{num.bootstraps}{Number of bootstrap to specify if you select "bootstrap" in "p_value method". The default value is 10.}
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded.}
 }
 \value{
-A Microsoft Word document about the Minkowski distance matrix and the p_values matrix.
+A Microsoft Word document about the Minkowski dissimilarities/distances matrix or matrices (two or more) and the p_values matrix or matrices (two or more).
 }
 \description{
-This function takes a dataframe, a factor and returns a Microsoft Word document about the Minkowski distance matrix and the p-values matrix with corresponding plots.
+This function takes a dataframe, a factor or factors (two or more) and returns a Microsoft Word document about the Minkowski dissimilarities/distances matrix or matrices (two or more) and the p-values matrix or matrices (two or more).
+}
+\details{
+When p < 1, the Minkowski distance is a "dissimilarity" measure. When p >= 1, 
+the triangle inequality property is satisfied and we say "Minkowski distance".
 }
 \examples{
+# Example with iris dataset
+data(iris)
+
 # Generate a report about "Species" factor in iris dataset
-generate_report_cminkowski(iris, ~Species, p = 3)
+generate_report_cminkowski(iris, ~Species, p = 3, 
+pvalue.method = "permutation")
+
+# Example with mtcars dataset
+data(mtcars)
 
 # Generate a report about "am" factor in mtcars dataset
-generate_report_cminkowski(mtcars, ~am, p = 3)
-
+generate_report_cminkowski(mtcars, ~am, 
+p = 3, pvalue.method = 'permutation', seed = 234)
+ 
 }

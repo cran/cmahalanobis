@@ -1,22 +1,22 @@
 Package: cmahalanobis
 Type: Package
-Title: Calculate Distance Measures for a Given List of Data Frames with
-        Factors
-Version: 0.5.0
+Title: Calculate Distance Measures for DataFrames
+Version: 1.0.0
+Date: 2025-09-13
 Authors@R: person(given = "Flavio",
                   family = "Gioia",
                   role = c("aut", "cre"),
                   email = "flaviogioia.fg@gmail.com", comment = c(ORCID = "0009-0000-0326-3840"))
 Maintainer: Flavio Gioia <flaviogioia.fg@gmail.com>
-Description: It provides functions that calculate Mahalanobis distance, Euclidean distance, Manhattan distance, Chebyshev distance, Hamming distance, Canberra distance, Minkowski distance, Cosine distance, Bhattacharyya distance, Jaccard distance, Hellinger distance, Bray-Curtis distance, Sorensen-Dice distance between each pair of species in a list of data frames. These metrics are fundamental in various fields, such as cluster analysis, classification, and other applications of machine learning and data mining, where assessing similarity or dissimilarity between data is crucial. The package is designed to be flexible and easily integrated into data analysis workflows, providing reliable tools for evaluating distances in multidimensional contexts.
+Description: It provides functions that calculate Mahalanobis distance, Euclidean distance, Manhattan distance, Chebyshev distance, Hamming distance, Canberra distance, Minkowski dissimilarity (distance defined for p >= 1), Cosine dissimilarity, Bhattacharyya dissimilarity, Jaccard distance, Hellinger distance, Bray-Curtis dissimilarity, Sorensen-Dice dissimilarity between each pair of species in a list of data frames. These statistics are fundamental in various fields, such as cluster analysis, classification, and other applications of machine learning and data mining, where assessing similarity or dissimilarity between data is crucial. The package is designed to be flexible and easily integrated into data analysis workflows, providing reliable tools for evaluating distances in multidimensional contexts.
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.2.3
-Imports: stats, ggplot2, reshape2, mice
+Imports: stats, ggplot2, reshape2, gridExtra, matrixStats
 Suggests: rmarkdown, testthat (>= 3.0.0)
 NeedsCompilation: no
-Config/testthat/edition: 3
-Packaged: 2025-01-01 10:59:23 UTC; flavi
-Author: Flavio Gioia [aut, cre] (<https://orcid.org/0009-0000-0326-3840>)
+RoxygenNote: 7.3.3
+Packaged: 2025-09-14 07:42:56 UTC; flavi
+Author: Flavio Gioia [aut, cre] (ORCID:
+    <https://orcid.org/0009-0000-0326-3840>)
 Repository: CRAN
-Date/Publication: 2025-01-08 10:30:02 UTC
+Date/Publication: 2025-09-14 11:30:19 UTC

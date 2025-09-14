@@ -2,38 +2,45 @@
 % Please edit documentation in R/cmahalanobis.R
 \name{generate_report_cmanhattan}
 \alias{generate_report_cmanhattan}
-\title{Generate a Microsoft Word document about the Manhattan distance and the p-values matrices with corresponding plots.}
+\title{Generate a Microsoft Word document about the Manhattan distances matrix or matrices (two or more) and the p-values matrix or matrices (two or more).}
 \usage{
 generate_report_cmanhattan(
   dataset,
   formula,
-  pvalue.method = "chisq",
-  num.permutations = 10,
-  num.bootstraps = 10
+  pvalue.method = "permutation",
+  seed = NULL,
+  min_group_size = 3
 )
 }
 \arguments{
 \item{dataset}{A dataframe.}
 
-\item{formula}{A factor which you want to calculate the Manhattan distance matrix and the p_values matrix.}
+\item{formula}{A variable or variables (two or more) with factors which you want to calculate the Manhattan distances matrix or matrices (two or more) and the p_values matrix or matrices (two or more).}
 
-\item{pvalue.method}{A p_value method used to calculate the matrix, the default value is "chisq".Other methods are "permutation" and "bootstrap".}
+\item{pvalue.method}{A p_value method used to calculate the matrix or matrices (two or more), the default value is "permutation". Another method is "bootstrap".}
 
-\item{num.permutations}{Number of permutation to specify if you select "permutation" in "pvalue.method". The default value is 100.}
+\item{seed}{Optionally, set a seed for "bootstrap" and "permutation".}
 
-\item{num.bootstraps}{Number of bootstrap to specify if you select "bootstrap" in "p_value method". The default value is 10.}
+\item{min_group_size}{Minimum group size to maintain. The default value is 3, therefore groups, inside variables, with less than 3 observations will be discarded.}
 }
 \value{
-A Microsoft Word document about the Manhattan distance matrix and the p_values matrix.
+A Microsoft Word document about the Manhattan distances matrix or matrices (two or more) and the p_values matrix or matrices (two or more).
 }
 \description{
-This function takes a dataframe, a factor and returns a Microsoft Word document about the Manhattan distance matrix and the p-values matrix with corresponding plots.
+This function takes a dataframe, a factor or factors (two or more) and returns a Microsoft Word document about the Manhattan distances matrix or matrices (two or more) and the p-values matrix or matrices (two or more).
 }
 \examples{
+# Example with iris dataset
+data(iris)
+
 # Generate a report about "Species" factor in iris dataset
-generate_report_cmanhattan(iris, ~Species)
+generate_report_cmanhattan(iris, ~Species, pvalue.method = "permutation")
+
+# Example with mtcars dataset
+data(mtcars)
 
 # Generate a report about "am" factor in mtcars dataset
-generate_report_cmanhattan(mtcars, ~am)
+generate_report_cmanhattan(mtcars, ~am, 
+pvalue.method = 'bootstrap', seed = 123)
 
 }
